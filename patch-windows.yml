@@ -1,0 +1,14 @@
+---
+- name: Patch Azure Windows VM
+  hosts: all
+  tasks:
+    - name: Install Windows updates
+      ansible.windows.win_updates:
+        category_names:
+          - CriticalUpdates
+          - SecurityUpdates
+        reboot: yes
+      register: update_result
+    - name: Display update results
+      debug:
+        var: update_result
