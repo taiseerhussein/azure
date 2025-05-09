@@ -7,8 +7,8 @@
         category_names:
           - CriticalUpdates
           - SecurityUpdates
-        reboot: yes
+        reboot: true
       register: update_result
     - name: Display update results
-      debug:
+      ansible.builtin.debug:
         var: update_result
