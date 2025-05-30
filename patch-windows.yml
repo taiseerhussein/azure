@@ -1,14 +1,37 @@
 ---
-- name: Patch Azure Windows VM
-  hosts: all
+- name: Apply Windows Updates
+  hosts: windows
+  gather_facts: false # Optional, but can speed up large inventories if facts aren't strictly needed for updates
+  vars:
+    # Set this to true to actually install updates.
+    # Set to false to just check for available updates.
+    install_updates: true
   tasks:
-    - name: Install Windows updates
+    - name: Check for Windows updates
       ansible.windows.win_updates:
         category_names:
-          - CriticalUpdates
           - SecurityUpdates
-        reboot: true
-      register: update_result
-    - name: Display update results
+          - CriticalUpdates
+          - UpdateRollups
+        state: searched
+      register: update_results
+
+    - name: Display available updates
       ansible.builtin.debug:
-        var: update_result
+        msg: "Available updates: {{ update_results.updates | map(attribute='title') | list }}"
+      when: update_results.updates | length > 0
+
+    # - name: Install Windows updates
+    #   ansible.windows.win_updates:
+    #     category_names:
+    #       - SecurityUpdates
+    #       - CriticalUpdates
+    #       - UpdateRollups
+    #     state: installed
+    #     reboot: true # Reboot if required after installing updates
+    #   when: install_updates and update_results.updates | length > 0
+
+    # - name: Reboot if pending
+    #   ansible.windows.win_reboot:
+    #     reboot_timeout: 600 # Wait up to 10 minutes for reboot
+    #   when: update_results.reboot_required
