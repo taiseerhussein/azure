@@ -13,6 +13,8 @@
           - SecurityUpdates
           - CriticalUpdates
           - UpdateRollups
+          - Updates
+          - Definition
         state: searched
       register: update_results
 
