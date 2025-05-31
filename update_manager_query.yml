@@ -88,13 +88,16 @@
     - name: Group updates by machine and display
       ansible.builtin.debug:
         msg: |
-          Updates:
-          {% for update in item.value %}
+          Machine: {{ item.0 }}
+            Updates:
+          {% for update in item.1 %}
               - Name: {{ update.patchName }} (KB: {{ update.kbId }})
                 Classification: {{ update.classification }}
                 Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
           {% endfor %}
       loop: "{{ pending_updates_data.data | groupby('machineName') }}"
+      loop_control:
+        label: "{{ item.0 }}"
       when: pending_updates_data.data | length > 0
 
     - name: Inform if no pending updates found
