@@ -73,7 +73,7 @@
     - name: Parse Azure query result and ensure data integrity
       ansible.builtin.set_fact:
         # Filter to ensure only dictionary-like objects are included in the data
-        all_pending_updates_data: "{{ azure_query_result.json.data | selectattr('keys')  | list }}"
+        all_pending_updates_data: "{{ azure_query_result.json.data }}"
 
     - name: Display summary of pending updates (Phase 1)
       ansible.builtin.debug:
