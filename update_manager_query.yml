@@ -11,6 +11,10 @@
     azure_tenant_id: "{{ lookup('env', 'AZURE_TENANT') }}"
     # azure_subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}" # Not directly used in ARG query body, but often available
 
+    # Azure AD token endpoint for client credentials flow
+    azure_token_url: "https://login.microsoftonline.com/{{ azure_tenant_id }}/oauth2/token"
+    azure_resource_uri: "https://management.azure.com/" # The resource/audience for the token
+
     # Azure Resource Graph API endpoint
     # The API version for Resource Graph queries.
     arg_api_url: "https://management.azure.com/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01"
@@ -32,32 +36,48 @@
       | order by machineName, classification // Order the results for better readability
 
   tasks:
+    - name: Get OAuth2 token from Azure AD
+      ansible.builtin.uri:
+        url: "{{ azure_token_url }}"
+        method: POST
+        headers:
+          Content-Type: "application/x-www-form-urlencoded" # Required for token endpoint
+        body:
+          grant_type: client_credentials
+          client_id: "{{ azure_client_id }}"
+          client_secret: "{{ azure_client_secret }}"
+          resource: "{{ azure_resource_uri }}"
+        status_code: 200
+        validate_certs: true
+      register: azure_auth_token_response
+      no_log: true # Prevent sensitive token from being logged
+      changed_when: false
+
+    - name: Set access token fact
+      ansible.builtin.set_fact:
+        access_token: "{{ azure_auth_token_response.json.access_token }}"
+      no_log: true # Prevent sensitive token from being logged
+
     - name: Query Azure Resource Graph for pending updates via REST API
       ansible.builtin.uri:
         url: "{{ arg_api_url }}"
         method: POST
         headers:
-          Content-Type: "application/json" # Specify the content type for the request body
-        body_format: json # Tell Ansible to format the 'body' as JSON
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ access_token }}" # Use the obtained access token here
+        body_format: json
         body:
-          query: "{{ kql_query }}" # The KQL query to execute
+          query: "{{ kql_query }}"
           # Optionally, you can specify target subscriptions or management groups for the query.
           # If not specified, the query runs against all subscriptions accessible by the service principal.
           # subscriptions:
           #   - "{{ azure_subscription_id }}"
-        oauth2_token:
-          client_id: "{{ azure_client_id }}" # Client ID of your Azure Service Principal
-          client_secret: "{{ azure_client_secret }}" # Client Secret of your Azure Service Principal
-          grant_type: client_credentials # Standard OAuth 2.0 grant type for application authentication
-          resource: "https://management.azure.com/" # The resource/audience for the token (Azure Management API)
-          token_url: "https://login.microsoftonline.com/{{ azure_tenant_id }}/oauth2/token" # Azure AD token endpoint
-        status_code: 200 # Expect a 200 OK response for success
-        validate_certs: true # Always keep this true in production for security
-      register: azure_query_result # Store the API response
-      changed_when: false # This task only queries data, it doesn't change anything
+        status_code: 200
+        validate_certs: true
+      register: azure_query_result
+      changed_when: false
 
     - name: Parse Azure query result
-      # The 'from_json' filter parses the JSON string from the API response into an Ansible dictionary/list.
       ansible.builtin.set_fact:
         pending_updates_data: "{{ azure_query_result.json }}"
 
@@ -66,8 +86,6 @@
         msg: "--- Pending Updates Summary ---"
 
     - name: Group updates by machine and display
-      # Use the 'groupby' filter to organize the updates by machine name.
-      # The 'loop' iterates through each machine and its associated updates.
       ansible.builtin.debug:
         msg: |
           Machine: {{ item.key }}
@@ -79,10 +97,10 @@
           {% endfor %}
       loop: "{{ pending_updates_data.data | groupby('machineName') }}"
       loop_control:
-        label: "{{ item.key }}" # Label for the loop output in Ansible
-      when: pending_updates_data.data | length > 0 # Only display if there are updates
+        label: "{{ item.key }}"
+      when: pending_updates_data.data | length > 0
 
     - name: Inform if no pending updates found
       ansible.builtin.debug:
         msg: "No pending updates found via Azure Update Manager."
-      when: pending_updates_data.data | length == 0 # Display if no updates were found
+      when: pending_updates_data.data | length == 0
