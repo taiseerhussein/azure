@@ -23,13 +23,12 @@
       | where type has "softwarepatches"
       | extend properties = parse_json(properties)
       | extend machineName = tostring(split(id, "/", 8))
-      | extend kbId = properties.kbId
       | extend patchName = properties.patchName
-      | extend classification = tostring(properties.classification) # Ensure classification is string
+      | extend classification = properties.classification
       | extend rebootRequired = properties.rebootRequired
       | where isnull(properties.installationState) or properties.installationState == "Pending"
       | project machineName, patchName, kbId, classification, rebootRequired
-      | order by tostring(machineName), tostring(classification) # Explicit cast for order by
+      | order by tostring(machineName), tostring(classification)
 
   tasks:
     - name: Get OAuth2 token from Azure AD
