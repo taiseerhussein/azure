@@ -20,16 +20,16 @@
     # Kusto Query Language (KQL) query to get pending software patches.
     kql_query: |
       patchassessmentresources
-      | where type has "softwarepatches"
+      | where type has "softwarepatches" // Filter for individual software patch records
       | extend properties = parse_json(properties)
-      | extend machineName = tostring(split(id, "/", 8))
-      | extend kbId = properties.kbId
-      | extend patchName = properties.patchName
-      | extend classification = tostring(properties.classification) # Ensure classification is string
-      | extend rebootRequired = properties.rebootRequired
-      | where isnull(properties.installationState) or properties.installationState == "Pending"
-      | project machineName, patchName, kbId, classification, rebootRequired
-      | order by tostring(machineName), tostring(classification) # Explicit cast for order by
+      | extend machineName = tostring(split(id, "/", 8)) // Extract machine name from resource ID
+      | extend kbId = properties.kbId // Windows Knowledge Base ID
+      | extend patchName = properties.patchName // Name of the patch
+      | extend classification = properties.classification // Update classification (e.g., SecurityUpdates, CriticalUpdates)
+      | extend rebootRequired = properties.rebootRequired // Indicates if a reboot is required
+      | where isnull(properties.installationState) or properties.installationState == "Pending" // Filter for updates that are pending installation
+      | project machineName, patchName, kbId, classification, rebootRequired // Select relevant fields for output
+      | order by tostring(machineName), tostring(classification)
 
   tasks:
     - name: Get OAuth2 token from Azure AD
