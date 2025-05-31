@@ -109,9 +109,6 @@
   # Moved to a block to comply with Ansible syntax for play-level conditional execution
   tasks:
     - block:
-        - name: Display updates
-          ansible.builtin.debug:
-            msg: " {{ all_pending_updates_data }}"
         - name: Get pending updates for the current host from the collected data
           ansible.builtin.set_fact:
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
