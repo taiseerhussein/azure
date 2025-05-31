@@ -97,7 +97,7 @@
           {% endfor %}
       loop: "{{ pending_updates_data.data | groupby('machineName') }}"
       loop_control:
-        label: "{{ item.key }}"
+        label: "{{ item.kbId }}"
       when: pending_updates_data.data | length > 0
 
     - name: Inform if no pending updates found
