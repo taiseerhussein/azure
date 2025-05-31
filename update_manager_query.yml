@@ -41,7 +41,7 @@
         url: "{{ azure_token_url }}"
         method: POST
         headers:
-          Content-Type: "application/x-www-form-urlencoded" # Required for token endpoint
+          Content-Type: "application/json" # Required for token endpoint
         body:
           grant_type: client_credentials
           client_id: "{{ azure_client_id }}"
