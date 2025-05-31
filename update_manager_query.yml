@@ -56,7 +56,7 @@
     - name: Set access token fact
       ansible.builtin.set_fact:
         access_token: "{{ azure_auth_token_response.json.access_token }}"
-      no_log: true # Prevent sensitive token from being logged
+      # no_log: true # Prevent sensitive token from being logged
 
     - name: Query Azure Resource Graph for pending updates via REST API
       ansible.builtin.uri:
