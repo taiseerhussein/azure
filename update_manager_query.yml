@@ -140,7 +140,7 @@
 
         - name: Install specific Windows updates by KB ID
           ansible.windows.win_updates:
-            kb_ids: "{{ current_host_kb_ids }}" # Use the KB IDs specific to this host
+            accept_list: "{{ current_host_kb_ids }}" # Use the KB IDs specific to this host
             state: installed
             reboot: false # Let win_reboot handle the reboot if required
           register: install_results
