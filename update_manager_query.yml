@@ -83,7 +83,7 @@
 
     - name: Display summary of pending updates
       ansible.builtin.debug:
-        msg: "--- Pending Updates Summary ---"
+        msg: "--- Pending Updates Summary --- {{ azure_query_result }}"
 
     - name: Group updates by machine and display
       ansible.builtin.debug:
