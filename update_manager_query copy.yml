@@ -1,5 +1,5 @@
 ---
-- name: Query Azure Update Manager for Pending Updates via REST API (Phase 1: Localhost)
+- name: Query Azure Update Manager for Pending Updates via REST API
   hosts: localhost # This playbook runs on the Ansible control node (or execution node)
   connection: local # It performs actions locally, querying Azure API
 
@@ -9,50 +9,55 @@
     azure_client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
     azure_client_secret: "{{ lookup('env', 'AZURE_SECRET') }}"
     azure_tenant_id: "{{ lookup('env', 'AZURE_TENANT') }}"
+    # azure_subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}" # Not directly used in ARG query body, but often available
 
     # Azure AD token endpoint for client credentials flow
     azure_token_url: "https://login.microsoftonline.com/{{ azure_tenant_id }}/oauth2/token"
     azure_resource_uri: "https://management.azure.com/" # The resource/audience for the token
 
     # Azure Resource Graph API endpoint
+    # The API version for Resource Graph queries.
     arg_api_url: "https://management.azure.com/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01"
 
     # Kusto Query Language (KQL) query to get pending software patches.
+    # This query fetches individual pending patches (KB IDs for Windows) from Azure Resource Graph.
+    # It assumes the machines are managed by Azure Update Manager and their assessments are in ARG.
     kql_query: |
       patchassessmentresources
-      | where type has "softwarepatches"
+      | where type has "softwarepatches" // Filter for individual software patch records
       | extend properties = parse_json(properties)
-      | extend machineName = tostring(split(id, "/", 8))
-      | extend kbId = properties.kbId
-      | extend patchName = properties.patchName
-      | extend classification = tostring(properties.classification) # Ensure classification is string
-      | extend rebootRequired = properties.rebootRequired
-      | where isnull(properties.installationState) or properties.installationState == "Pending"
-      | project machineName, patchName, kbId, classification, rebootRequired
-      | order by tostring(machineName), tostring(classification) # Explicit cast for order by
+      | extend machineName = tostring(split(id, "/", 8)) // Extract machine name from resource ID
+      | extend kbId = properties.kbId // Windows Knowledge Base ID
+      | extend patchName = properties.patchName // Name of the patch
+      | extend classification = properties.classification // Update classification (e.g., SecurityUpdates, CriticalUpdates)
+      | extend rebootRequired = properties.rebootRequired // Indicates if a reboot is required
+      | where isnull(properties.installationState) or properties.installationState == "Pending" // Filter for updates that are pending installation
+      | project machineName, patchName, kbId, classification, rebootRequired // Select relevant fields for output
+      | order by tostring(machineName), tostring(classification)
 
   tasks:
     - name: Get OAuth2 token from Azure AD
       ansible.builtin.uri:
         url: "{{ azure_token_url }}"
         method: POST
+        body_format: form-urlencoded
         headers:
-          Content-Type: "application/x-www-form-urlencoded"
+          Content-Type: "application/x-www-form-urlencoded" # Required for token endpoint
         body:
           grant_type: client_credentials
           client_id: "{{ azure_client_id }}"
           client_secret: "{{ azure_client_secret }}"
           resource: "{{ azure_resource_uri }}"
         status_code: 200
-        validate_certs: true
+       # validate_certs: true
       register: azure_auth_token_response
-      no_log: true # Prevent sensitive token from being logged
+      # no_log: true # Prevent sensitive token from being logged
       changed_when: false
 
     - name: Set access token fact
       ansible.builtin.set_fact:
         access_token: "{{ azure_auth_token_response.json.access_token }}"
-      no_log: true # Prevent sensitive token from being logged
+      # no_log: true # Prevent sensitive token from being logged
 
     - name: Query Azure Resource Graph for pending updates via REST API
       ansible.builtin.uri:
@@ -60,25 +65,28 @@
         method: POST
         headers:
           Content-Type: "application/json"
-          Authorization: "Bearer {{ access_token }}"
+          Authorization: "Bearer {{ access_token }}" # Use the obtained access token here
         body_format: json
         body:
           query: "{{ kql_query }}"
+          # Optionally, you can specify target subscriptions or management groups for the query.
+          # If not specified, the query runs against all subscriptions accessible by the service principal.
+          # subscriptions:
+          #   - "{{ azure_subscription_id }}"
         status_code: 200
         validate_certs: true
       register: azure_query_result
       changed_when: false
 
-    - name: Parse Azure query result and ensure data integrity
+    - name: Parse Azure query result
       ansible.builtin.set_fact:
-        # Filter to ensure only dictionary-like objects are included in the data
-        all_pending_updates_data: "{{ azure_query_result.json.data | select('type_compatible_with', 'dict') | list }}"
+        pending_updates_data: "{{ azure_query_result.json }}"
 
-    - name: Display summary of pending updates (Phase 1)
+    - name: Display summary of pending updates
       ansible.builtin.debug:
-        msg: "--- Phase 1: Pending Updates Summary from Azure Update Manager (All Machines) ---"
+        msg: "--- Pending Updates Summary --- "
 
-    - name: Group all updates by machine and display (Phase 1)
+    - name: Group updates by machine and display
       ansible.builtin.debug:
         msg: |
           Machine: {{ item.0 }}
@@ -88,41 +96,52 @@
                 Classification: {{ update.classification }}
                 Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
           {% endfor %}
-      loop: "{{ all_pending_updates_data | selectattr('machineName', 'defined') | groupby('machineName') }}"
+      loop: "{{ pending_updates_data.data | selectattr('machineName', 'defined') | groupby('machineName') }}"
       loop_control:
         label: "{{ item.0 }}"
-      when: all_pending_updates_data | length > 0
+      when: pending_updates_data.data | length > 0
 
-    - name: Inform if no pending updates found (Phase 1)
+    - name: Inform if no pending updates found
       ansible.builtin.debug:
-        msg: "No pending updates found via Azure Update Manager for any machine. Skipping patch application."
-      when: all_pending_updates_data | length == 0
-
+        msg: "No pending updates found via Azure Update Manager."
+      when: pending_updates_data.data | length == 0
 # --- NEW PLAY: Apply updates on existing Windows Servers from inventory (Phase 2: Remote Hosts) ---
 - name: Apply updates on existing Windows Servers
-  hosts: your_windows_group # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
+  hosts: windows # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
   connection: winrm
   gather_facts: false # Optional, can speed up if facts aren't strictly needed
 
   # Ensure this play only runs if there were any machines with pending updates found in Phase 1
-  # Moved to a block to comply with Ansible syntax for play-level conditional execution
+  # when: hostvars['localhost']['pending_updates_data'] is defined and hostvars['localhost']['pending_updates_data'] | length > 0
+
+  vars:
+    # Windows Machine Credential details - these need to be accessible for the remote hosts
+    # It's recommended to configure these as environment variables in your AAP Job Template
+    # using sensitive variables from your Windows Machine Credential, or directly in inventory.
+    # If using inventory vars, remove these from here.
+    # ansible_user: "{{ lookup('env', 'ANSIBLE_WINDOWS_USER') | default('thussein') }}"
+    # ansible_password: "{{ lookup('env', 'ANSIBLE_WINDOWS_PASSWORD') }}"
+    # ansible_port: 5986 # Use 5985 for HTTP WinRM
+    # ansible_winrm_transport: ntlm # Use 'ntlm' for HTTP or if CredSSP isn't configured
+    # # WARNING: For production, configure proper certificate validation instead of ignoring
+    # ansible_winrm_server_cert_validation: ignore # Adjust for production
+
   tasks:
     - block:
         - name: Get pending updates for the current host from the collected data
           ansible.builtin.set_fact:
-            # Filter all_pending_updates_data for updates specific to the current inventory_hostname
             current_host_updates: >
-              {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName', 'defined') # Ensure machineName is defined
+              {{ hostvars['localhost']['pending_updates_data']
+                 | selectattr('machineName', 'defined') 
                  | selectattr('machineName', 'equalto', inventory_hostname) | list }}
             current_host_kb_ids: >
-              {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName', 'defined') # Ensure machineName is defined
+              {{ hostvars['localhost']['pending_updates_data']
+                 | selectattr('machineName', 'defined') 
                  | selectattr('machineName', 'equalto', inventory_hostname)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
-              {{ (hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName', 'defined') # Ensure machineName is defined
+              {{ (hostvars['localhost']['pending_updates_data']
+                 | selectattr('machineName', 'defined')
                  | selectattr('machineName', 'equalto', inventory_hostname)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
@@ -159,4 +178,4 @@
           ansible.builtin.debug:
             msg: "No specific KB IDs were provided for installation on {{ inventory_hostname }} or no updates were installed by win_updates."
           when: current_host_kb_ids | length == 0 or not install_results.changed
-      when: hostvars['localhost']['all_pending_updates_data'] is defined and hostvars['localhost']['all_pending_updates_data'] | length > 0
+      when: hostvars['localhost']['pending_updates_data'] is defined and hostvars['localhost']['pending_updates_data'] | length > 0
