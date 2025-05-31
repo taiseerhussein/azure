@@ -33,7 +33,6 @@
       | extend rebootRequired = properties.rebootRequired // Indicates if a reboot is required
       | where isnull(properties.installationState) or properties.installationState == "Pending" // Filter for updates that are pending installation
       | project machineName, patchName, kbId, classification, rebootRequired // Select relevant fields for output
-      | order by machineName, classification // Order the results for better readability
 
   tasks:
     - name: Get OAuth2 token from Azure AD
