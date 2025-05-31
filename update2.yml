@@ -21,9 +21,9 @@
           client_id: "{{ client_id }}"
           client_secret: "{{ secret }}"
           resource: https://management.azure.com/
-        body_format: json
+        body_format: form-urlencoded
         headers:
-          Content-Type: application/jason
+          Content-Type: application/x-www-form-urlencoded
       register: azure_auth
 
     - name: Set the Azure auth token
