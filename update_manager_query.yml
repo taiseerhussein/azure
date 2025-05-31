@@ -83,12 +83,17 @@
 
     - name: Display summary of pending updates
       ansible.builtin.debug:
-        msg: "--- Pending Updates Summary --- {{ pending_updates_data }}"
+        msg: "--- Pending Updates Summary --- {{ azure_query_result }}"
 
     - name: Group updates by machine and display
       ansible.builtin.debug:
         msg: |
-          "{{ item }} "
+          Updates:
+          {% for update in item.value %}
+              - Name: {{ update.patchName }} (KB: {{ update.kbId }})
+                Classification: {{ update.classification }}
+                Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
+          {% endfor %}
       loop: "{{ pending_updates_data.data | groupby('machineName') }}"
       when: pending_updates_data.data | length > 0
 
