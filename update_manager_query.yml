@@ -117,10 +117,10 @@
                 | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                | list }}
+                 | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
-                | list) | length > 0 }}
+                 | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
