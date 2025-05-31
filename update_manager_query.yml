@@ -1,0 +1,80 @@
+---
+- name: Query Azure Update Manager for Pending Updates
+  hosts: localhost # This playbook runs on the Ansible control node (or execution node)
+  connection: local # It performs actions locally, querying Azure API
+
+  vars:
+    # Kusto Query Language (KQL) query to get pending software patches
+    # This query fetches individual pending patches (KB IDs for Windows)
+    # It assumes the machines are managed by Azure Update Manager and their assessments are in ARG.
+    azure_arg_query: |
+      patchassessmentresources
+      | where type has "softwarepatches" // Look for individual software patch records
+      | extend properties = parse_json(properties)
+      | extend machineName = tostring(split(id, "/", 8))
+      | extend kbId = properties.kbId // For Windows updates
+      | extend patchName = properties.patchName
+      | extend classification = properties.classification
+      | extend rebootRequired = properties.rebootRequired
+      | where isnull(properties.installationState) or properties.installationState == "Pending" // Filter for pending updates
+      | project machineName, patchName, kbId, classification, rebootRequired
+      | order by machineName, classification
+
+  tasks:
+    - name: Ensure Azure CLI is available
+      ansible.builtin.command: az --version
+      register: az_cli_check
+      ignore_errors: true # Don't fail if az is not found, we'll check its return code
+      changed_when: false
+      failed_when: "'command not found' in az_cli_check.stderr or az_cli_check.rc != 0"
+      when: az_cli_check is not defined # Only run if az_cli_check wasn't registered
+
+    - name: Inform if Azure CLI is not installed
+      ansible.builtin.fail:
+        msg: "Azure CLI is not installed or not in PATH. Please install it on the execution node."
+      when: az_cli_check.rc != 0 or 'command not found' in az_cli_check.stderr
+
+    - name: Execute Azure Resource Graph query to get pending updates
+      # Use the 'az graph query' command to run the KQL query.
+      # The output is JSON by default.
+      ansible.builtin.shell: |
+        az graph query -q "{{ azure_arg_query }}" --output json
+      environment:
+        # These environment variables are crucial for Azure CLI to pick up the service principal
+        # managed by the Azure Resource Manager credential in AAP.
+        # AAP's execution environment often handles this, but explicitly setting them can help.
+        # Ensure your AAP credential is linked to this job template.
+        # AZURE_CLIENT_ID: "{{ lookup('env', 'AZURE_CLIENT_ID') }}" # If AAP sets these
+        # AZURE_SECRET: "{{ lookup('env', 'AZURE_SECRET') }}"
+        # AZURE_TENANT: "{{ lookup('env', 'AZURE_TENANT') }}"
+        # AZURE_SUBSCRIPTION_ID: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+      register: azure_query_result
+      changed_when: false # This task only queries, it doesn't change anything
+
+    - name: Parse Azure query result
+      ansible.builtin.set_fact:
+        pending_updates_data: "{{ azure_query_result.stdout | from_json }}"
+
+    - name: Display summary of pending updates
+      ansible.builtin.debug:
+        msg: "--- Pending Updates Summary ---"
+
+    - name: Group updates by machine and display
+      ansible.builtin.debug:
+        msg: |
+          Machine: {{ item.key }}
+            Updates:
+          {% for update in item.value %}
+              - Name: {{ update.patchName }} (KB: {{ update.kbId }})
+                Classification: {{ update.classification }}
+                Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
+          {% endfor %}
+      loop: "{{ pending_updates_data.data | groupby('machineName') }}"
+      loop_control:
+        label: "{{ item.key }}"
+      when: pending_updates_data.data | length > 0
+
+    - name: Inform if no pending updates found
+      ansible.builtin.debug:
+        msg: "No pending updates found via Azure Update Manager."
+      when: pending_updates_data.data | length == 0
