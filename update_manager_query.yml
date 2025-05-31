@@ -111,7 +111,7 @@
   gather_facts: false # Optional, can speed up if facts aren't strictly needed
 
   # Ensure this play only runs if there were any machines with pending updates found in Phase 1
-  # when: hostvars['localhost']['all_pending_updates_data'] is defined and hostvars['localhost']['all_pending_updates_data'] | length > 0
+  # when: hostvars['localhost']['pending_updates_data'] is defined and hostvars['localhost']['pending_updates_data'] | length > 0
 
   vars:
     # Windows Machine Credential details - these need to be accessible for the remote hosts
@@ -128,13 +128,13 @@
   tasks:
     - name: Get pending updates for the current host from the collected data
       ansible.builtin.set_fact:
-        # Filter all_pending_updates_data for updates specific to the current inventory_hostname
+        # Filter pending_updates_data for updates specific to the current inventory_hostname
         current_host_updates: >
-          {{ hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | list }}
+          {{ hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | list }}
         current_host_kb_ids: >
-          {{ hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | map(attribute='kbId') | list }}
+          {{ hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | map(attribute='kbId') | list }}
         current_host_reboot_required: >
-          {{ (hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
+          {{ (hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
     - name: Display pending updates for {{ inventory_hostname }}
       ansible.builtin.debug:
