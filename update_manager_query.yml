@@ -111,7 +111,7 @@
   gather_facts: false # Optional, can speed up if facts aren't strictly needed
 
   # Ensure this play only runs if there were any machines with pending updates found in Phase 1
-  when: hostvars['localhost']['all_pending_updates_data'] is defined and hostvars['localhost']['all_pending_updates_data'] | length > 0
+  # when: hostvars['localhost']['all_pending_updates_data'] is defined and hostvars['localhost']['all_pending_updates_data'] | length > 0
 
   vars:
     # Windows Machine Credential details - these need to be accessible for the remote hosts
