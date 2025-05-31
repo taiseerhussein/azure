@@ -142,6 +142,10 @@
           ansible.windows.win_updates:
             accept_list: "{{ current_host_kb_ids }}" # Use the KB IDs specific to this host
             state: installed
+            category_names:
+              - SecurityUpdates
+              - CriticalUpdates
+              - UpdateRollups
             reboot: false # Let win_reboot handle the reboot if required
           register: install_results
           when: current_host_kb_ids | length > 0
