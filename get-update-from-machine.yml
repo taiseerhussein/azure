@@ -25,18 +25,6 @@
       - UpdateRollups
 
   tasks:
-    - name: Ensure WinRM is configured for Ansible (optional, if not already done)
-      # This task can be used if you need to configure WinRM on the fly.
-      # It typically involves running a PowerShell script on the target VM.
-      # For Azure VMs, this is often done via a Custom Script Extension during VM provisioning.
-      # If WinRM is already configured, you can remove or skip this task.
-      # Example (requires win_shell or win_powershell, and a way to get the script to the VM):
-      # win_shell: |
-      #   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-      #   Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1" -OutFile "C:\Temp\ConfigureRemotingForAnsible.ps1"
-      #   C:\Temp\ConfigureRemotingForAnsible.ps1 -ForceNewCertificate -EnableCredSSP
-      # delegate_to: "{{ inventory_hostname }}" # Run this task on the target Windows host
-
     - name: Check for available Windows updates
       ansible.windows.win_updates:
         category_names: "{{ update_categories }}"
