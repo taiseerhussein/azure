@@ -9,9 +9,9 @@
     # Use HTTPS for WinRM (port 5986) for security.
     # If using HTTP (port 5985), change ansible_port to 5985 and ansible_winrm_transport to 'ntlm'.
     ansible_port: 5986
-    ansible_winrm_transport: credssp # Recommended for production (requires CredSSP setup)
+    # ansible_winrm_transport: credssp # Recommended for production (requires CredSSP setup)
     # If using NTLM over HTTPS with a self-signed certificate, you might need:
-    # ansible_winrm_transport: ntlm
+    ansible_winrm_transport: ntlm
     # ansible_winrm_server_cert_validation: ignore # WARNING: Do not use in production with untrusted certs!
 
     # Set to 'true' to actually install updates. Set to 'false' to only search and print.
