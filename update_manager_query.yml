@@ -50,7 +50,7 @@
         status_code: 200
         validate_certs: true
       register: azure_auth_token_response
-      no_log: true # Prevent sensitive token from being logged
+      # no_log: true # Prevent sensitive token from being logged
       changed_when: false
 
     - name: Set access token fact
