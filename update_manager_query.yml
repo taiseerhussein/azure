@@ -95,7 +95,7 @@
                 Classification: {{ update.classification }}
                 Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
           {% endfor %}
-      loop: "{{ pending_updates_data.data | groupby('machineName') }}"
+      loop: "{{ pending_updates_data.data | selectattr('machineName', 'defined') | groupby('machineName') }}"
       loop_control:
         label: "{{ item.0 }}"
       when: pending_updates_data.data | length > 0
