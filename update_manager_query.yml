@@ -126,46 +126,48 @@
     # ansible_winrm_server_cert_validation: ignore # Adjust for production
 
   tasks:
-    - name: Get pending updates for the current host from the collected data
-      ansible.builtin.set_fact:
-        # Filter pending_updates_data for updates specific to the current inventory_hostname
-        current_host_updates: >
-          {{ hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | list }}
-        current_host_kb_ids: >
-          {{ hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | map(attribute='kbId') | list }}
-        current_host_reboot_required: >
-          {{ (hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
+    - block:
+        - name: Get pending updates for the current host from the collected data
+          ansible.builtin.set_fact:
+            # Filter pending_updates_data for updates specific to the current inventory_hostname
+            current_host_updates: >
+              {{ hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | list }}
+            current_host_kb_ids: >
+              {{ hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | map(attribute='kbId') | list }}
+            current_host_reboot_required: >
+              {{ (hostvars['localhost']['pending_updates_data'] | selectattr('machineName', 'equalto', inventory_hostname) | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
-    - name: Display pending updates for {{ inventory_hostname }}
-      ansible.builtin.debug:
-        msg: |
-          Pending updates for {{ inventory_hostname }}:
-          {% for update in current_host_updates %}
-              - Name: {{ update.patchName }} (KB: {{ update.kbId }})
-                Classification: {{ update.classification }}
-                Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
-          {% endfor %}
-      when: current_host_updates | length > 0
+        - name: Display pending updates for {{ inventory_hostname }}
+          ansible.builtin.debug:
+            msg: |
+              Pending updates for {{ inventory_hostname }}:
+              {% for update in current_host_updates %}
+                  - Name: {{ update.patchName }} (KB: {{ update.kbId }})
+                    Classification: {{ update.classification }}
+                    Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
+              {% endfor %}
+          when: current_host_updates | length > 0
 
-    - name: Inform if no updates found for this specific host
-      ansible.builtin.debug:
-        msg: "No pending updates found for {{ inventory_hostname }} from Azure Update Manager data."
-      when: current_host_updates | length == 0
+        - name: Inform if no updates found for this specific host
+          ansible.builtin.debug:
+            msg: "No pending updates found for {{ inventory_hostname }} from Azure Update Manager data."
+          when: current_host_updates | length == 0
 
-    - name: Install specific Windows updates by KB ID
-      ansible.windows.win_updates:
-        kb_ids: "{{ current_host_kb_ids }}" # Use the KB IDs specific to this host
-        state: installed
-        reboot: false # Let win_reboot handle the reboot if required
-      register: install_results
-      when: current_host_kb_ids | length > 0
+        - name: Install specific Windows updates by KB ID
+          ansible.windows.win_updates:
+            kb_ids: "{{ current_host_kb_ids }}" # Use the KB IDs specific to this host
+            state: installed
+            reboot: false # Let win_reboot handle the reboot if required
+          register: install_results
+          when: current_host_kb_ids | length > 0
 
-    - name: Perform reboot if required by updates
-      ansible.windows.win_reboot:
-        reboot_timeout: 600 # Wait up to 10 minutes for the server to reboot
-      when: install_results.reboot_required or current_host_reboot_required
+        - name: Perform reboot if required by updates
+          ansible.windows.win_reboot:
+            reboot_timeout: 600 # Wait up to 10 minutes for the server to reboot
+          when: install_results.reboot_required or current_host_reboot_required
 
-    - name: Inform if no specific KB IDs were installed for this machine
-      ansible.builtin.debug:
-        msg: "No specific KB IDs were provided for installation on {{ inventory_hostname }} or no updates were installed by win_updates."
-      when: current_host_kb_ids | length == 0 or not install_results.changed
+        - name: Inform if no specific KB IDs were installed for this machine
+          ansible.builtin.debug:
+            msg: "No specific KB IDs were provided for installation on {{ inventory_hostname }} or no updates were installed by win_updates."
+          when: current_host_kb_ids | length == 0 or not install_results.changed
+      when: hostvars['localhost']['pending_updates_data'] is defined and hostvars['localhost']['pending_updates_data'] | length > 0
