@@ -22,6 +22,9 @@
       | where type has "softwarepatches"
       | extend properties = parse_json(properties)
       | extend machineName = tostring(split(id, "/", 8))
+      | extend machineName = replace_string(machineName, '"', '')
+      | extend machineName = replace_string(machineName, '[', '')
+      | extend machineName = replace_string(machineName, ']', '')
       | extend kbId = properties.kbId
       | extend patchName = properties.patchName
       | extend classification = properties.classification
@@ -151,11 +154,11 @@
           ansible.builtin.debug:
             # msg: " {{ item.machineName }} "
             msg: >
-             "^^^{{ inventory_hostname }}^^^||| ***{{ item.machineName | replace('["','') | replace('"]','') | trim}}***
+             "^^^{{ inventory_hostname }}^^^||| ***{{ item.machineName }}***
                  {{ item.patchName }}"
 
           loop: >
-             "{{ hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName' , 'equalto', inventory_hostname) | list  }}"
+             "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
