@@ -118,7 +118,7 @@
               {% set matched_updates = [] %}
               {% set processed_inventory_hostname = inventory_hostname.split('.')[0] | lower | trim %}
               {% for update_item in hostvars['localhost']['all_pending_updates_data'] %}
-                {% if update_item.machineName is defined and tostring(update_item.machineName | trim) == processed_inventory_hostname %}
+                {% if update_item.machineName is defined and update_item.machineName | trim == processed_inventory_hostname %}
                   {% set _ = matched_updates.append(update_item) %}
                 {% endif %}
               {% endfor %}
