@@ -117,17 +117,17 @@
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'search', inventory_hostname | lower | trim) | list }}
+                 | selectattr('machineName', 'equalto', inventory_hostname  | trim) | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'search', inventory_hostname | lower | trim)
+                 | selectattr('machineName', 'equalto', inventory_hostname | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'search', inventory_hostname | lower | trim)
-                 | selectattr('rebootRequired', 'search', true) | list) | length > 0 }}
+                 | selectattr('machineName', 'equalto', inventory_hostname | trim)
+                 | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
