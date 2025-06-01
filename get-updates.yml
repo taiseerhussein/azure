@@ -122,16 +122,6 @@
         - name: DEBUG Display processed inventory_hostname for comparison
           ansible.builtin.debug:
             msg: "Comparing with: '{{ inventory_hostname.split('.')[0] | lower }}'"
-
-        - name: DEBU Display machineName from ARG data
-          ansible.builtin.debug:
-            msg: >
-              {% if hostvars['localhost']['all_pending_updates_data']
-              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
-              Sample machineName from ARG data: '{{ hostvars['localhost']['all_pending_updates_data'][0].machineName }}'
-              {% else %}
-              N/A
-              {% endif %}
     
         - name: Get pending updates for the current host from the collected data
           ansible.builtin.set_fact:
