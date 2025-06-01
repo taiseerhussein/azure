@@ -146,7 +146,9 @@
 
         - name: DEBUG Display all of the data
           ansible.builtin.debug:
-            msg: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
+            msg: "{{ selectattr(item.machineName | replace('[\"','') | replace('\"]','') | trim, 'equalto', inventory_hostname) | map(attribute='patchName') }}"
+
+          loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
