@@ -119,47 +119,18 @@
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'equalto', inventory_hostname  | trim )
+                 | selectattr('machineName', 'equalto', inventory_hostname  | trim )
                  | map(attribute='patchName') | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
-                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName', 'equalto', inventory_hostname | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
-                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName', 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
           
-        # - name: DEBUG Display machineName from ARG data (raw and processed)
-        #   ansible.builtin.debug:
-        #     msg: >
-        #       {{ item.machineName | replace('["','') | replace('"]','') }} :::::
-        #       {% if hostvars['localhost']['all_pending_updates_data']
-        #       | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
-        #       Sample raw machineName from ARG data: '###{{ item.machineName
-        #       | replace('["','') | replace('"]','') }}###' :: {{ inventory_hostname }} ::
-        #       Sample processed machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName
-        #       | replace('["','') | replace('"]','')| trim }}###'
-        #       {% else %}
-        #       N/A
-        #       {% endif %}
-        #   loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
-        - name: DEBUG display all of the items
-          ansible.builtin.debug:
-            msg: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
-
-        - name: DEBUG Display all of the data
-          ansible.builtin.debug:
-            # msg: " {{ item.machineName }} "
-            msg: >
-             "^^^{{ inventory_hostname }}^^^||| ***{{ item.machineName }}***
-                 {{ item.patchName }}"
-
-          loop: >
-             "{{ hostvars['localhost']['all_pending_updates_data'] }}"
-
+    
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
             msg: |
