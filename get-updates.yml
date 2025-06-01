@@ -116,17 +116,17 @@
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr(machineName | replace('["','') | replace('"]',''), 'defined')
-                 | selectattr(machineName | replace('["','') | replace('"]',''), 'equalto', inventory_hostname  | trim) | list }}
+                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'equalto', inventory_hostname  | trim )
+                 | map(attribute='patchName') | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'defined')
-                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
+                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'equalto', inventory_hostname | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'defined')
-                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
+                 | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
           
         - name: DEBUG Display machineName from ARG data (raw and processed)
