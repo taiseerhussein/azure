@@ -115,14 +115,9 @@
           ansible.builtin.set_fact:
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
             current_host_updates: >
-              {% set matched_updates = [] %}
-              {% set processed_inventory_hostname = inventory_hostname.split('.')[0] | lower | trim %}
-              {% for update_item in hostvars['localhost']['all_pending_updates_data'] %}
-                {% if update_item.machineName is defined and update_item.machineName | trim == processed_inventory_hostname %}
-                  {% set _ = matched_updates.append(update_item) %}
-                {% endif %}
-              {% endfor %}
-              {{ matched_updates }}
+              {{ hostvars['localhost']['all_pending_updates_data']
+                 | selectattr('machineName', 'defined')
+                 | selectattr('machineName', 'equalto', inventory_hostname  | trim) | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
@@ -134,6 +129,16 @@
                  | selectattr('machineName', 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
+        - name: DEBUG Display machineName from ARG data (raw and processed)
+          ansible.builtin.debug:
+            msg: >
+              {% if hostvars['localhost']['all_pending_updates_data']
+              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
+              Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName }}###'
+              Sample processed machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName | trim }}###'
+              {% else %}
+              N/A
+              {% endif %}
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
             msg: |
