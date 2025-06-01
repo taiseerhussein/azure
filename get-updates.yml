@@ -1,0 +1,99 @@
+- name: Query Azure Update Manager for Pending Updates via REST API
+  hosts: localhost # This playbook runs on the Ansible control node (or execution node)
+  connection: local # It performs actions locally, querying Azure API
+
+  vars:
+    # Azure authentication details - these are typically populated by AAP's Azure Resource Manager credential
+    # when assigned to the job template. Ensure your AAP credential is configured to pass these.
+    azure_client_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
+    azure_client_secret: "{{ lookup('env', 'AZURE_SECRET') }}"
+    azure_tenant_id: "{{ lookup('env', 'AZURE_TENANT') }}"
+
+    # Azure AD token endpoint for client credentials flow
+    azure_token_url: "https://login.microsoftonline.com/{{ azure_tenant_id }}/oauth2/token"
+    azure_resource_uri: "https://management.azure.com/" # The resource/audience for the token
+
+    # Azure Resource Graph API endpoint
+    arg_api_url: "https://management.azure.com/providers/Microsoft.ResourceGraph/resources?api-version=2021-03-01"
+
+    # Kusto Query Language (KQL) query to get pending software patches.
+    kql_query: |
+      patchassessmentresources
+      | where type has "softwarepatches"
+      | extend properties = parse_json(properties)
+      | extend machineName = tostring(split(id, "/", 8))
+      | extend kbId = properties.kbId
+      | extend patchName = properties.patchName
+      | extend classification = properties.classification
+      | extend rebootRequired = properties.rebootRequired
+      | where isnull(properties.installationState) or properties.installationState == "Pending"
+      | project machineName, patchName, kbId, classification, rebootRequired
+      | order by tostring(machineName), tostring(classification)
+
+  tasks:
+    - name: Get OAuth2 token from Azure AD
+      ansible.builtin.uri:
+        url: "{{ azure_token_url }}"
+        method: POST
+        body_format: form-urlencoded
+        headers:
+          Content-Type: "application/x-www-form-urlencoded" # Required for token endpoint
+        body:
+          grant_type: client_credentials
+          client_id: "{{ azure_client_id }}"
+          client_secret: "{{ azure_client_secret }}"
+          resource: "{{ azure_resource_uri }}"
+        status_code: 200
+       # validate_certs: true
+      register: azure_auth_token_response
+      # no_log: true # Prevent sensitive token from being logged
+      changed_when: false
+
+    - name: Set access token fact
+      ansible.builtin.set_fact:
+        access_token: "{{ azure_auth_token_response.json.access_token }}"
+      no_log: true # Prevent sensitive token from being logged
+
+    - name: Query Azure Resource Graph for pending updates via REST API
+      ansible.builtin.uri:
+        url: "{{ arg_api_url }}"
+        method: POST
+        headers:
+          Content-Type: "application/json"
+          Authorization: "Bearer {{ access_token }}"
+        body_format: json
+        body:
+          query: "{{ kql_query }}"
+        status_code: 200
+        validate_certs: true
+      register: azure_query_result
+      changed_when: false
+
+    - name: Parse Azure query result and ensure data integrity
+      ansible.builtin.set_fact:
+        # Filter to ensure only dictionary-like objects are included in the data
+        all_pending_updates_data: "{{ azure_query_result.json.data }}"
+
+    - name: Display summary of pending updates (Phase 1)
+      ansible.builtin.debug:
+        msg: "--- Phase 1: Pending Updates Summary from Azure Update Manager (All Machines) ---"
+
+    - name: Group all updates by machine and display (Phase 1)
+      ansible.builtin.debug:
+        msg: |
+          Machine: {{ item.0 }}
+            Updates:
+          {% for update in item.1 %}
+              - Name: {{ update.patchName }} (KB: {{ update.kbId }})
+                Classification: {{ update.classification }}
+                Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
+          {% endfor %}
+      loop: "{{ all_pending_updates_data | selectattr('machineName', 'defined') | groupby('machineName') }}"
+      loop_control:
+        label: "{{ item.0 }}"
+      when: all_pending_updates_data | length > 0
+
+    - name: Inform if no pending updates found (Phase 1)
+      ansible.builtin.debug:
+        msg: "No pending updates found via Azure Update Manager for any machine. Skipping patch application."
+      when: all_pending_updates_data | length == 0
