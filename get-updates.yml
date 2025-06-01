@@ -117,53 +117,18 @@
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower | trim) | list }}
+                 | selectattr('machineName', 'equalto', inventory_hostname.split | lower | trim) | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower | trim)
+                 | selectattr('machineName', 'equalto', inventory_hostname.split | lower | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower | trim)
+                 | selectattr('machineName', 'equalto', inventory_hostname.split | lower | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
-        - name: DEBUG Display inventory_hostname for current host (raw and processed)
-          ansible.builtin.debug:
-            msg: |
-              Raw inventory_hostname: '###{{ inventory_hostname }}###'
-              Processed inventory_hostname for comparison: '###{{ inventory_hostname.split('.')[0] | lower | trim }}###'
-
-        - name: DEBUG Display machineName from ARG data (raw and processed)
-          ansible.builtin.debug:
-            msg: >
-              {% if hostvars['localhost']['all_pending_updates_data']
-              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
-              Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'].machineName }}###'
-              Sample processed machineName from ARG data (from KQL): '###{{ hostvars['localhost']['all_pending_updates_data'].machineName | trim }}###'
-              {% else %}
-              N/A
-              {% endif %}
-
-        - name: DEBUG Perform direct comparison test
-          ansible.builtin.debug:
-            msg: >
-              "Comparison result (processed inventory_hostname == processed ARG machineName):
-              {{ (inventory_hostname.split('.')[0] | lower | trim) == (hostvars['localhost']['all_pending_updates_data'].machineName | trim)
-              if hostvars['localhost']['all_pending_updates_data']
-              | length > 0 and hostvars['localhost']['all_pending_updates_data'].machineName is defined else 'N/A' }}"
-          when: hostvars['localhost']['all_pending_updates_data'] | length > 0
-
-        - name: DEBUG Display current_host_updates and its machineName
-          ansible.builtin.debug:
-            msg: >
-              {% if current_host_updates | length > 0 %}
-              MachineName from current_host_updates: '{{ current_host_updates[0].machineName }}'
-              {% else %}
-              No matching updates found for this host in ARG data.
-              {% endif %}
-        
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
             msg: |
