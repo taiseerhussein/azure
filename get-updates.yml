@@ -151,7 +151,8 @@
           ansible.builtin.debug:
             # msg: " {{ item.machineName }} "
             msg: >
-             "^^^{{ inventory_hostname }}^^^||||||| {{ item | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
+             "^^^{{ inventory_hostname }}^^^||| ***{{ item.machineName | replace('["','') | replace('"]','') | trim}}***||||
+             {{ item | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
              | selectattr('machineName'
              | replace('[','') | replace(']','')
              | replace('"','') | replace('"','')
