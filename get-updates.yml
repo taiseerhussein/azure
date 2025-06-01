@@ -117,16 +117,16 @@
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName' | replace('[','') | replace(']',''), 'equalto', inventory_hostname  | trim) | list }}
+                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname  | trim) | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName' | replace('[','') | replace(']',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName' | | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName' | replace('[','') | replace(']',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName' | | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
         - name: DEBUG Display machineName from ARG data (raw and processed)
@@ -135,9 +135,9 @@
               {% if hostvars['localhost']['all_pending_updates_data']
               | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
               Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName
-              | replace('[','') | replace(']','') }}###'
+              | replace('["','') | replace('"]','') }}###'
               Sample processed machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName
-              | replace('[','') | replace(']','')| trim }}###'
+              | replace('["','') | replace('"]','')| trim }}###'
               {% else %}
               N/A
               {% endif %}
