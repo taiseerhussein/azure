@@ -85,7 +85,7 @@
     - name: Group all updates by machine and display (Phase 1)
       ansible.builtin.debug:
         msg: |
-          Machine: {{ item.0 | replace('\[','') | replace('\]','') }}
+          Machine: {{ item.0 | replace('[','') | replace(']','') }}
             Updates:
           {% for update in item.1 %}
               - Name: {{ update.patchName }} (KB: {{ update.kbId }})
