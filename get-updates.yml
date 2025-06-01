@@ -73,6 +73,10 @@
       ansible.builtin.set_fact:
         # Filter to ensure only dictionary-like objects are included in the data
         all_pending_updates_data: "{{ azure_query_result.json.data }}"
+    
+    - name: DEBUG Display raw all_pending_updates_data from ARG
+      ansible.builtin.debug:
+        var: all_pending_updates_data
 
     - name: Display summary of pending updates (Phase 1)
       ansible.builtin.debug:
