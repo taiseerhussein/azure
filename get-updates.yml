@@ -21,7 +21,7 @@
       patchassessmentresources
       | where type has "softwarepatches"
       | extend properties = parse_json(properties)
-      | extend machineName = tostring(split(id, '/')[-1] | trim)
+      | extend machineName = tostring(split(id, "/", 8))
       | extend kbId = properties.kbId
       | extend patchName = properties.patchName
       | extend classification = properties.classification
