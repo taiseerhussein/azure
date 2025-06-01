@@ -147,17 +147,18 @@
           ansible.builtin.debug:
             msg: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
-        # - name: DEBUG Display all of the data
-        #   ansible.builtin.debug:
-        #     # msg: " {{ item.machineName }} "
-        #     msg: >
-        #      " {{ inventory_hostname }} ||||||| {{ item | selectattr('machineName'
-        #      | replace('[','') | replace(']','')
-        #      | replace('"','') | replace('"','')
-        #      | trim, 'equalto', inventory_hostname)
-        #      | map(attribute='patchName') | list }}"
+        - name: DEBUG Display all of the data
+          ansible.builtin.debug:
+            # msg: " {{ item.machineName }} "
+            msg: >
+             "^^^{{ inventory_hostname }}^^^||||||| {{ item | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
+             | selectattr('machineName'
+             | replace('[','') | replace(']','')
+             | replace('"','') | replace('"','')
+             | trim, 'equalto', inventory_hostname)
+             | map(attribute='patchName') | list }}"
 
-        #   loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
+          loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
