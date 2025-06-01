@@ -111,30 +111,19 @@
   # Moved to a block to comply with Ansible syntax for play-level conditional execution
   tasks:
     - block:
-        - name: DEBUG Display all_pending_updates_data
+        - name: DEBUG Display all_pending_updates_data (inside second play)
           ansible.builtin.debug:
             var: hostvars['localhost']['all_pending_updates_data']
-            verbosity: 2 # Only show with -vv or higher
 
         - name: DEBUG Display inventory_hostname for current host
           ansible.builtin.debug:
             var: inventory_hostname
-            verbosity: 2
 
         - name: DEBUG Display processed inventory_hostname for comparison
           ansible.builtin.debug:
-            msg: "Comparing with: {{ inventory_hostname.split('.')[0] | lower }}"
-            verbosity: 2
+            msg: "Comparing with: '{{ inventory_hostname.split('.')[0] | lower }}'"
 
-        - name: DEBUG Display a sample machineName from all_pending_updates_data (if available)
-          ansible.builtin.debug:
-            msg: >
-                 "Sample machineName from ARG data:
-                 {{ hostvars['localhost']['all_pending_updates_data'][0].machineName if hostvars['localhost']['all_pending_updates_data']
-                 | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined else 'N/A' }}"
-            verbosity: 2
-
-        - name: DEBUG Display machineName from ARG data and its type
+        - name: DEBU Display machineName from ARG data
           ansible.builtin.debug:
             msg: >
               {% if hostvars['localhost']['all_pending_updates_data']
@@ -143,12 +132,6 @@
               {% else %}
               N/A
               {% endif %}
-
-        - name: DEBUG Display processed inventory_hostname and its type
-          ansible.builtin.debug:
-            msg: >
-             "Processed inventory_hostname: '{{ inventory_hostname.split('.')[0] | lower }}'
-             (Type: {{ (inventory_hostname.split('.')[0] | lower) | type_rej | default('unknown') }})"
     
         - name: Get pending updates for the current host from the collected data
           ansible.builtin.set_fact:
