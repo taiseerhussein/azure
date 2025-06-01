@@ -134,10 +134,7 @@
           ansible.builtin.debug:
             msg: |
               Pending updates for {{ inventory_hostname }}:
-              {% for update in current_host_updates %}
-                  - Name: {{ update.patchName }} (KB: {{ update.kbId }})
-                    Classification: {{ update.classification }}
-              {% endfor %}
+              {{ current_host_updates }}
           when: current_host_updates | length > 0
 
         - name: Inform if no updates found for this specific host
