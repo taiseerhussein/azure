@@ -97,3 +97,43 @@
       ansible.builtin.debug:
         msg: "No pending updates found via Azure Update Manager for any machine. Skipping patch application."
       when: all_pending_updates_data | length == 0
+
+- name: Apply updates on existing Windows Servers
+  hosts: your_windows_group # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
+  connection: winrm
+  gather_facts: false # Optional, can speed up if facts aren't strictly needed
+
+  # Ensure this play only runs if there were any machines with pending updates found in Phase 1
+  # Moved to a block to comply with Ansible syntax for play-level conditional execution
+  tasks:
+    - block:
+        - name: Get pending updates for the current host from the collected data
+          ansible.builtin.set_fact:
+            # Filter all_pending_updates_data for updates specific to the current inventory_hostname
+            current_host_updates: >
+              {{ hostvars['localhost']['all_pending_updates_data']
+                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower) | list }}
+            current_host_kb_ids: >
+              {{ hostvars['localhost']['all_pending_updates_data']
+                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower)
+                 | map(attribute='kbId') | list }}
+            current_host_reboot_required: >
+              {{ (hostvars['localhost']['all_pending_updates_data']
+                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower)
+                 | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
+
+        - name: Display pending updates for {{ inventory_hostname }}
+          ansible.builtin.debug:
+            msg: |
+              Pending updates for {{ inventory_hostname }}:
+              {% for update in current_host_updates %}
+                  - Name: {{ update.patchName }} (KB: {{ update.kbId }})
+                    Classification: {{ update.classification }}
+                    Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
+              {% endfor %}
+          when: current_host_updates | length > 0
+
+        - name: Inform if no updates found for this specific host
+          ansible.builtin.debug:
+            msg: "No pending updates found for {{ inventory_hostname }} from Azure Update Manager data."
+          when: current_host_updates | length == 0
