@@ -135,7 +135,7 @@
               {{ item.machineName | replace('["','') | replace('"]','') }} :::::
               {% if hostvars['localhost']['all_pending_updates_data']
               | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
-              Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName
+              Sample raw machineName from ARG data: '###{{ item.machineName
               | replace('["','') | replace('"]','') }}###' :: {{ inventory_hostname }} ::
               Sample processed machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName
               | replace('["','') | replace('"]','')| trim }}###'
