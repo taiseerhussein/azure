@@ -155,10 +155,7 @@
                  {{ item.patchName }}"
 
           loop: >
-             "{{ hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName'| replace('[','') | replace(']','')
-             | replace('"','') | replace('"','')
-             | trim, 'equalto', inventory_hostname)
-             | list  }}"
+             "{{ hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName' , 'equalto', inventory_hostname) | list  }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
