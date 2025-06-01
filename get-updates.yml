@@ -121,12 +121,12 @@
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName' | | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'defined')
-                 | selectattr('machineName' | | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
         - name: DEBUG Display machineName from ARG data (raw and processed)
