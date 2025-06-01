@@ -146,13 +146,13 @@
 
         - name: DEBUG Display all of the data
           ansible.builtin.debug:
-            msg: " {{ item.machineName }}"
-            # msg: >
-            #  "{{ item | selectattr('machineName'
-            #  | replace('[','') | replace(']','')
-            #  | replace('"','') | replace('"','')
-            #  | trim, 'equalto', inventory_hostname)
-            #  | map(attribute='patchName') | list }}"
+            # msg: " {{ item.machineName }} "
+            msg: >
+             "{{ item | selectattr('machineName'
+             | replace('[','') | replace(']','')
+             | replace('"','') | replace('"','')
+             | trim, 'equalto', inventory_hostname)
+             | map(attribute='patchName') | list }}"
 
           loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
