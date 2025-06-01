@@ -99,7 +99,7 @@
       when: all_pending_updates_data | length == 0
 
 - name: Apply updates on existing Windows Servers
-  hosts: your_windows_group # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
+  hosts: windows # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
   connection: winrm
   gather_facts: false # Optional, can speed up if facts aren't strictly needed
 
