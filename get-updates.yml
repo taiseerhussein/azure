@@ -116,19 +116,19 @@
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr(item.machineName | replace('["','') | replace('"]',''), 'equalto', inventory_hostname  | trim) | list }}
+                 | selectattr('machineName', 'defined')
+                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname  | trim) | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr(item.machineName | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName', 'defined')
+                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
-                 | selectattr(item.machineName | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
+                 | selectattr('machineName', 'defined')
+                 | selectattr('machineName' | replace('["','') | replace('"]',''), 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
           
-          loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
-
-
         - name: DEBUG Display machineName from ARG data (raw and processed)
           ansible.builtin.debug:
             msg: >
@@ -143,6 +143,10 @@
               N/A
               {% endif %}
           loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
+
+        - name: DEBUG Display all of the data
+          ansible.builtin.debug:
+            msg: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
