@@ -21,7 +21,7 @@
       patchassessmentresources
       | where type has "softwarepatches"
       | extend properties = parse_json(properties)
-      | extend machineName = tostring(split(id, "/", 8))
+      | extend machineName = tostring(split(id, '/')[-1] | trim)
       | extend kbId = properties.kbId
       | extend patchName = properties.patchName
       | extend classification = properties.classification
@@ -128,6 +128,32 @@
                  | selectattr('machineName', 'defined')
                  | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
+
+        - name: DEBUG Display inventory_hostname for current host (raw and processed)
+          ansible.builtin.debug:
+            msg: |
+              Raw inventory_hostname: '###{{ inventory_hostname }}###'
+              Processed inventory_hostname for comparison: '###{{ inventory_hostname.split('.')[0] | lower | trim }}###'
+
+        - name: DEBUG Display machineName from ARG data (raw and processed)
+          ansible.builtin.debug:
+            msg: >
+              {% if hostvars['localhost']['all_pending_updates_data']
+              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
+              Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName }}###'
+              Sample processed machineName from ARG data (from KQL): '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName | trim }}###'
+              {% else %}
+              N/A
+              {% endif %}
+
+        - name: DEBUG Perform direct comparison test
+          ansible.builtin.debug:
+            msg: >
+              "Comparison result (processed inventory_hostname == processed ARG machineName):
+              {{ (inventory_hostname.split('.')[0] | lower | trim) == (hostvars['localhost']['all_pending_updates_data'][0].machineName | trim)
+              if hostvars['localhost']['all_pending_updates_data']
+              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined else 'N/A' }}"
+          when: hostvars['localhost']['all_pending_updates_data'] | length > 0
 
         - name: DEBUG Display current_host_updates and its machineName
           ansible.builtin.debug:
