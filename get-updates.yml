@@ -133,6 +133,25 @@
                  {{ hostvars['localhost']['all_pending_updates_data'][0].machineName if hostvars['localhost']['all_pending_updates_data']
                  | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined else 'N/A' }}"
             verbosity: 2
+
+        - name: DEBUG Display machineName from ARG data and its type
+          ansible.builtin.debug:
+            msg: >
+              {% if hostvars['localhost']['all_pending_updates_data']
+              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
+              Sample machineName from ARG data: '{{ hostvars['localhost']['all_pending_updates_data'][0].machineName }}'
+              (Type: {{ hostvars['localhost']['all_pending_updates_data'][0].machineName
+              | type_rej | default('unknown') }})
+              {% else %}
+              N/A
+              {% endif %}
+
+        - name: DEBUG Display processed inventory_hostname and its type
+          ansible.builtin.debug:
+            msg: >
+             "Processed inventory_hostname: '{{ inventory_hostname.split('.')[0] | lower }}'
+             (Type: {{ (inventory_hostname.split('.')[0] | lower) | type_rej | default('unknown') }})"
+    
         - name: Get pending updates for the current host from the collected data
           ansible.builtin.set_fact:
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
