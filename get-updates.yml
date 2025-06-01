@@ -111,18 +111,6 @@
   # Moved to a block to comply with Ansible syntax for play-level conditional execution
   tasks:
     - block:
-        - name: DEBUG Display all_pending_updates_data (inside second play)
-          ansible.builtin.debug:
-            var: hostvars['localhost']['all_pending_updates_data']
-
-        - name: DEBUG Display inventory_hostname for current host
-          ansible.builtin.debug:
-            var: inventory_hostname
-
-        - name: DEBUG Display processed inventory_hostname for comparison
-          ansible.builtin.debug:
-            msg: "Comparing with: '{{ inventory_hostname.split('.')[0] | lower }}'"
-    
         - name: Get pending updates for the current host from the collected data
           ansible.builtin.set_fact:
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
@@ -138,6 +126,15 @@
                  | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
+        - name: DEBUG Display current_host_updates and its machineName
+          ansible.builtin.debug:
+            msg: >
+              {% if current_host_updates | length > 0 %}
+              MachineName from current_host_updates: '{{ current_host_updates[0].machineName }}'
+              {% else %}
+              No matching updates found for this host in ARG data.
+              {% endif %}
+        
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
             msg: |
