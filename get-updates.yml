@@ -140,8 +140,6 @@
               {% if hostvars['localhost']['all_pending_updates_data']
               | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
               Sample machineName from ARG data: '{{ hostvars['localhost']['all_pending_updates_data'][0].machineName }}'
-              (Type: {{ hostvars['localhost']['all_pending_updates_data'][0].machineName
-              | type | default('unknown') }})
               {% else %}
               N/A
               {% endif %}
