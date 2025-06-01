@@ -129,8 +129,7 @@
               {{ (hostvars['localhost']['all_pending_updates_data']
                  | selectattr('machineName', 'equalto', inventory_hostname | trim)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
-          
-    
+ 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
             msg: |
@@ -138,7 +137,6 @@
               {% for update in current_host_updates %}
                   - Name: {{ update.patchName }} (KB: {{ update.kbId }})
                     Classification: {{ update.classification }}
-                    Reboot Required: {{ 'Yes' if update.rebootRequired else 'No' }}
               {% endfor %}
           when: current_host_updates | length > 0
 
