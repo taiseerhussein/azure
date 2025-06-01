@@ -137,3 +137,17 @@
           ansible.builtin.debug:
             msg: "No pending updates found for {{ inventory_hostname }} from Azure Update Manager data."
           when: current_host_updates | length == 0
+      when: hostvars['localhost']['all_pending_updates_data'] is defined and hostvars['localhost']['all_pending_updates_data'] | length > 0
+
+  vars:
+    # Windows Machine Credential details - these need to be accessible for the remote hosts
+    # It's recommended to configure these as environment variables in your AAP Job Template
+    # using sensitive variables from your Windows Machine Credential, or directly in inventory.
+    # If using inventory vars, remove these from here.
+    # ansible_user: "{{ lookup('env', 'ANSIBLE_WINDOWS_USER') | default('Administrator') }}"
+    # ansible_password: "{{ lookup('env', 'ANSIBLE_WINDOWS_PASSWORD') }}"
+    # ansible_port: 5986 # Use 5985 for HTTP WinRM
+    # ansible_winrm_transport: credssp # Use 'ntlm' for HTTP or if CredSSP isn't configured
+    # # WARNING: For production, configure proper certificate validation instead of ignoring
+    # ansible_winrm_server_cert_validation: ignore # Adjust for production
+
