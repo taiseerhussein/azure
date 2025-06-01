@@ -114,17 +114,12 @@
             # Filter all_pending_updates_data for updates specific to the current inventory_hostname
             current_host_updates: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower) | list }}
+                | list }}
             current_host_kb_ids: >
               {{ hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower)
                  | map(attribute='kbId') | list }}
             current_host_reboot_required: >
               {{ (hostvars['localhost']['all_pending_updates_data']
-                 | selectattr('machineName', 'defined')
-                 | selectattr('machineName', 'equalto', inventory_hostname.split('.')[0] | lower)
                  | selectattr('rebootRequired', 'equalto', true) | list) | length > 0 }}
 
         - name: Display pending updates for {{ inventory_hostname }}
