@@ -142,7 +142,7 @@
               {% else %}
               N/A
               {% endif %}
-          loop: hostvars['localhost']['all_pending_updates_data']
+          loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
