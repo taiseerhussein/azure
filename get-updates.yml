@@ -151,15 +151,14 @@
           ansible.builtin.debug:
             # msg: " {{ item.machineName }} "
             msg: >
-             "^^^{{ inventory_hostname }}^^^||| ***{{ item.machineName | replace('["','') | replace('"]','') | trim}}***||||
-             {{ item | selectattr('machineName' | replace('["','') | replace('"]','') | trim, 'defined')
-             | selectattr('machineName'
-             | replace('[','') | replace(']','')
+             "^^^{{ inventory_hostname }}^^^||| ***{{ item.machineName | replace('["','') | replace('"]','') | trim}}***
+                 {{ item.patchName }}"
+
+          loop: >
+             "{{ hostvars['localhost']['all_pending_updates_data'] | selectattr('machineName'| replace('[','') | replace(']','')
              | replace('"','') | replace('"','')
              | trim, 'equalto', inventory_hostname)
-             | map(attribute='patchName') | list }}"
-
-          loop: "{{ hostvars['localhost']['all_pending_updates_data'] }}"
+             | list  }}"
 
         - name: Display pending updates for {{ inventory_hostname }}
           ansible.builtin.debug:
