@@ -132,7 +132,7 @@
         - name: DEBUG Display machineName from ARG data (raw and processed)
           ansible.builtin.debug:
             msg: >
-              {{ item.machineName }} :::::
+              {{ item.machineName | replace('["','') | replace('"]','') }} :::::
               {% if hostvars['localhost']['all_pending_updates_data']
               | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
               Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName
