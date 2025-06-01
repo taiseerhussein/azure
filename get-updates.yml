@@ -140,8 +140,8 @@
             msg: >
               {% if hostvars['localhost']['all_pending_updates_data']
               | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined %}
-              Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName }}###'
-              Sample processed machineName from ARG data (from KQL): '###{{ hostvars['localhost']['all_pending_updates_data'][0].machineName | trim }}###'
+              Sample raw machineName from ARG data: '###{{ hostvars['localhost']['all_pending_updates_data'].machineName }}###'
+              Sample processed machineName from ARG data (from KQL): '###{{ hostvars['localhost']['all_pending_updates_data'].machineName | trim }}###'
               {% else %}
               N/A
               {% endif %}
@@ -150,9 +150,9 @@
           ansible.builtin.debug:
             msg: >
               "Comparison result (processed inventory_hostname == processed ARG machineName):
-              {{ (inventory_hostname.split('.')[0] | lower | trim) == (hostvars['localhost']['all_pending_updates_data'][0].machineName | trim)
+              {{ (inventory_hostname.split('.')[0] | lower | trim) == (hostvars['localhost']['all_pending_updates_data'].machineName | trim)
               if hostvars['localhost']['all_pending_updates_data']
-              | length > 0 and hostvars['localhost']['all_pending_updates_data'][0].machineName is defined else 'N/A' }}"
+              | length > 0 and hostvars['localhost']['all_pending_updates_data'].machineName is defined else 'N/A' }}"
           when: hostvars['localhost']['all_pending_updates_data'] | length > 0
 
         - name: DEBUG Display current_host_updates and its machineName
