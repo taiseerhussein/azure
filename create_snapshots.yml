@@ -9,70 +9,71 @@
       secret: "{{ lookup('ansible.builtin.env', 'AZURE_SECRET') }}"
       tenant: "{{ lookup('ansible.builtin.env', 'AZURE_TENANT') }}"
       resource_group: "{{ hostvars[inventory_hostname].resource_group }}"
+  tasks:    
 
-  block:
-    - name: Set snapshot_base_name
-      ansible.builtin.set_fact:
-        snapshot_base_name: "{{ ansible_facts.date_time.iso8601_basic_short }}\
-            _Patching_{{ hostvars[inventory_hostname].name }}"
+    - block:
+      - name: Set snapshot_base_name
+        ansible.builtin.set_fact:
+          snapshot_base_name: "{{ ansible_facts.date_time.iso8601_basic_short }}\
+              _Patching_{{ hostvars[inventory_hostname].name }}"
 
-    - name: Create snapshot of OS disk
-      azure.azcollection.azure_rm_snapshot:
-        <<: *snapshot_auth
-        name: "{{ snapshot_base_name }}_OS"
-        location: "{{ hostvars[inventory_hostname].location }}"
-        creation_data:
-          create_option: Copy
-          source_id: "{{ hostvars[inventory_hostname].os_disk.id }}"
-        tags:
-          SourceVM: "{{ hostvars[inventory_hostname].name }}"
-          SourceDisk: "{{ hostvars[inventory_hostname].os_disk.id }}"
-          CreationDate: "{{ ansible_facts.date_time.iso8601_basic_short }}"
-      register: os_snapshot_result
+      - name: Create snapshot of OS disk
+        azure.azcollection.azure_rm_snapshot:
+          <<: *snapshot_auth
+          name: "{{ snapshot_base_name }}_OS"
+          location: "{{ hostvars[inventory_hostname].location }}"
+          creation_data:
+            create_option: Copy
+            source_id: "{{ hostvars[inventory_hostname].os_disk.id }}"
+          tags:
+            SourceVM: "{{ hostvars[inventory_hostname].name }}"
+            SourceDisk: "{{ hostvars[inventory_hostname].os_disk.id }}"
+            CreationDate: "{{ ansible_facts.date_time.iso8601_basic_short }}"
+        register: os_snapshot_result
 
-    - name: Create snapshot of data disks
-      azure.azcollection.azure_rm_snapshot:
-        <<: *snapshot_auth
-        name: "{{ snapshot_base_name }}_LUN{{ item.lun }}"
-        location: "{{ hostvars[inventory_hostname].location }}"
-        creation_data:
-          create_option: Copy
-          source_id: "{{ item.id }}"
-        tags:
-          SourceVM: "{{ hostvars[inventory_hostname].name }}"
-          SourceDisk: "{{ item.id }}"
-          CreationDate: "{{ ansible_facts.date_time.iso8601_basic_short }}"
-      loop: "{{ hostvars[inventory_hostname].data_disks }}"
-      register: data_snapshot_result
-      when: hostvars[inventory_hostname].data_disks is defined
+      - name: Create snapshot of data disks
+        azure.azcollection.azure_rm_snapshot:
+          <<: *snapshot_auth
+          name: "{{ snapshot_base_name }}_LUN{{ item.lun }}"
+          location: "{{ hostvars[inventory_hostname].location }}"
+          creation_data:
+            create_option: Copy
+            source_id: "{{ item.id }}"
+          tags:
+            SourceVM: "{{ hostvars[inventory_hostname].name }}"
+            SourceDisk: "{{ item.id }}"
+            CreationDate: "{{ ansible_facts.date_time.iso8601_basic_short }}"
+        loop: "{{ hostvars[inventory_hostname].data_disks }}"
+        register: data_snapshot_result
+        when: hostvars[inventory_hostname].data_disks is defined
 
-    - name: Set no_data_disks to true when data disk not present
-      ansible.builtin.set_fact:
-        no_data_disks: true
+      - name: Set no_data_disks to true when data disk not present
+        ansible.builtin.set_fact:
+          no_data_disks: true
 
-    - name: Display os snapshot result
-      ansible.builtin.debug:
-        var: os_snapshot_result
-      when: debug_play
+      - name: Display os snapshot result
+        ansible.builtin.debug:
+          var: os_snapshot_result
+        when: debug_play
 
-    - name: Display os snapshot result
-      ansible.builtin.debug:
-        var: data_snapshot_result
-      when: debug_play
+      - name: Display os snapshot result
+        ansible.builtin.debug:
+          var: data_snapshot_result
+        when: debug_play
 
-      # Example of os_snapshot_result
-      # os_snapshot_result:
-      #   changed: true
-      #   id: >-
-      #     /subscriptions/ad0056c8-0ca6-40e1-92d5-ac7a750f6a85/resourceGroups/rg-ansible-automationplatform-nonprod/providers/Microsoft.Compute/snapshots/20250528T142933_Patching_D01A3843
-      #   failed: false
-      # _ansible_verbose_always: true
-      # _ansible_no_log: false
-      # changed: false
-      # _ansible_delegated_vars:
-      #   ansible_host: localhost
-      #   ansible_port: null
-      #   ansible_user: root
-      #   ansible_connection: local
+        # Example of os_snapshot_result
+        # os_snapshot_result:
+        #   changed: true
+        #   id: >-
+        #     /subscriptions/ad0056c8-0ca6-40e1-92d5-ac7a750f6a85/resourceGroups/rg-ansible-automationplatform-nonprod/providers/Microsoft.Compute/snapshots/20250528T142933_Patching_D01A3843
+        #   failed: false
+        # _ansible_verbose_always: true
+        # _ansible_no_log: false
+        # changed: false
+        # _ansible_delegated_vars:
+        #   ansible_host: localhost
+        #   ansible_port: null
+        #   ansible_user: root
+        #   ansible_connection: local
 
-  delegate_to: localhost
+      delegate_to: localhost
