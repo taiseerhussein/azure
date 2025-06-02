@@ -1,6 +1,6 @@
 ---
 - name: Create snapshots
-  hosts: windows # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
+  # hosts: windows # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
   connection: winrm
   vars:
     snapshot_auth: &snapshot_auth
