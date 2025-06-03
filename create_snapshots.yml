@@ -4,7 +4,7 @@
   gather_facts: false
   vars:
     snapshot_auth: &snapshot_auth
-      subscription_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
+      subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
       client_id: "{{ lookup('ansible.builtin.env', 'AZURE_CLIENT_ID') }}"
       secret: "{{ lookup('ansible.builtin.env', 'AZURE_SECRET') }}"
       tenant: "{{ lookup('ansible.builtin.env', 'AZURE_TENANT') }}"
