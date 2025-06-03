@@ -14,8 +14,7 @@
     - block:
         - name: Set snapshot_base_name
           ansible.builtin.set_fact:
-            snapshot_base_name: "{{ now(utc=true,fmt='%Y-%m-%d %H:%M:%S') }}\
-                _Patching_{{ hostvars[inventory_hostname].name }}"
+            snapshot_base_name: "_Patching_{{ hostvars[inventory_hostname].name }}"
 
         - name: Create snapshot of OS disk
           azure.azcollection.azure_rm_snapshot:
