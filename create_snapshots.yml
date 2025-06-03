@@ -20,7 +20,7 @@
         - name: Create snapshot of OS disk
           azure.azcollection.azure_rm_snapshot:
             <<: *snapshot_auth
-            name: "os_{{ snapshot_base_name }} "
+            name: "{{ snapshot_base_name }}_OS"
             location: "{{ hostvars[inventory_hostname].location }}"
             creation_data:
               create_option: Copy
@@ -33,7 +33,7 @@
         - name: Create snapshot of data disks
           azure.azcollection.azure_rm_snapshot:
             <<: *snapshot_auth
-            name: "disk_{{ snapshot_base_name }}_LUN{{ item.lun }}"
+            name: "{{ snapshot_base_name }}_LUN{{ item.lun }}"
             location: "{{ hostvars[inventory_hostname].location }}"
             creation_data:
               create_option: Copy
