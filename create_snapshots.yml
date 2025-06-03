@@ -14,7 +14,7 @@
     - block:
         - name: Set snapshot_base_name
           ansible.builtin.set_fact:
-            snapshot_base_name: "{{ ansible_date_time.date.iso8601 }}\
+            snapshot_base_name: "{{ now(utc=true,fmt='%Y-%m-%d %H:%M:%S') }}\
                 _Patching_{{ hostvars[inventory_hostname].name }}"
 
         - name: Create snapshot of OS disk
@@ -28,7 +28,7 @@
             tags:
               SourceVM: "{{ hostvars[inventory_hostname].name }}"
               SourceDisk: "{{ hostvars[inventory_hostname].os_disk.id }}"
-              CreationDate: "{{ ansible_date_time.date.iso8601 }}"
+              CreationDate: "{{ now(utc=true,fmt='%Y-%m-%d %H:%M:%S') }}"
           register: os_snapshot_result
 
         - name: Create snapshot of data disks
@@ -42,7 +42,7 @@
             tags:
               SourceVM: "{{ hostvars[inventory_hostname].name }}"
               SourceDisk: "{{ item.id }}"
-              CreationDate: "{{ ansible_date_time.date.iso8601 }}"
+              CreationDate: "{{ now(utc=true,fmt='%Y-%m-%d %H:%M:%S') }}"
           loop: "{{ hostvars[inventory_hostname].data_disks }}"
           register: data_snapshot_result
           when: hostvars[inventory_hostname].data_disks is defined
