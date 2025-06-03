@@ -1,4 +1,5 @@
 collections:
   - name: azure.azcollection
+    version: 3.4.0
   - name: community.general
   - name: ansible.windows
