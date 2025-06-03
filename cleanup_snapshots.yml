@@ -23,4 +23,5 @@
         state: absent
       loop: "{{ data_snapshot_result.results }}"
       when: data_snapshot_result is defined
+      
   delegate_to: localhost
