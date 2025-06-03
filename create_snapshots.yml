@@ -30,12 +30,6 @@
               SourceDisk: "{{ hostvars[inventory_hostname].os_disk.id }}"
               CreationDate: "{{ now(utc=true,fmt='%Y-%m-%d %H:%M:%S') }}"
           register: os_snapshot_result
-
-        - name: Display os snapshot result
-          ansible.builtin.debug:
-            var: os_snapshot_result
-          when: debug_play
-          
         - name: Create snapshot of data disks
           azure.azcollection.azure_rm_snapshot:
             <<: *snapshot_auth
