@@ -28,7 +28,7 @@
             tags:
               SourceVM: "{{ hostvars[inventory_hostname].name }}"
               SourceDisk: "{{ hostvars[inventory_hostname].os_disk.id }}"
-              CreationDate: "{{ ansible_facts.date_time.iso8601_basic_short }}"
+              CreationDate: "{{ ansible_date_time.date.iso8601 }}"
           register: os_snapshot_result
 
         - name: Create snapshot of data disks
@@ -42,7 +42,7 @@
             tags:
               SourceVM: "{{ hostvars[inventory_hostname].name }}"
               SourceDisk: "{{ item.id }}"
-              CreationDate: "{{ ansible_facts.date_time.iso8601_basic_short }}"
+              CreationDate: "{{ ansible_date_time.date.iso8601 }}"
           loop: "{{ hostvars[inventory_hostname].data_disks }}"
           register: data_snapshot_result
           when: hostvars[inventory_hostname].data_disks is defined
