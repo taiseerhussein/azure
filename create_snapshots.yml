@@ -2,6 +2,7 @@
 - name: Create snapshots
   hosts: windows # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
   connection: winrm
+
   vars:
     snapshot_auth: &snapshot_auth
       subscription_id: "{{ lookup('env', 'AZURE_CLIENT_ID') }}"
@@ -10,7 +11,6 @@
       tenant: "{{ lookup('ansible.builtin.env', 'AZURE_TENANT') }}"
       resource_group: "{{ hostvars[inventory_hostname].resource_group }}"
   tasks:
-
     - block:
         - name: Set snapshot_base_name
           ansible.builtin.set_fact:
