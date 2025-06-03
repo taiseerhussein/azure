@@ -1,5 +1,6 @@
 ---
 - name: Cleanup snapshots
+  hosts: windows
   vars:
     snapshot_auth: &snapshot_auth
       subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
@@ -7,21 +8,21 @@
       secret: "{{ lookup('ansible.builtin.env', 'AZURE_SECRET') }}"
       tenant: "{{ lookup('ansible.builtin.env', 'AZURE_TENANT') }}"
       resource_group: "{{ hostvars[inventory_hostname].resource_group }}"
+  tasks:
+    - block:
+        - name: Cleanup snapshot of OS disk
+          azure.azcollection.azure_rm_snapshot:
+            <<: *snapshot_auth
+            name: "{{ snapshot_base_name }}_OS"
+            state: absent
+          when: os_snapshot_result is defined
 
-  block:
-    - name: Cleanup snapshot of OS disk
-      azure.azcollection.azure_rm_snapshot:
-        <<: *snapshot_auth
-        name: "{{ snapshot_base_name }}_OS"
-        state: absent
-      when: os_snapshot_result is defined
+        - name: Cleanup snapshot of data disks
+          azure.azcollection.azure_rm_snapshot:
+            <<: *snapshot_auth
+            name: "{{ item.invocation.module_args.name }}"
+            state: absent
+          loop: "{{ data_snapshot_result.results }}"
+          when: data_snapshot_result is defined
 
-    - name: Cleanup snapshot of data disks
-      azure.azcollection.azure_rm_snapshot:
-        <<: *snapshot_auth
-        name: "{{ item.invocation.module_args.name }}"
-        state: absent
-      loop: "{{ data_snapshot_result.results }}"
-      when: data_snapshot_result is defined
-      
-  delegate_to: localhost
+      delegate_to: localhost
