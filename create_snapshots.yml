@@ -59,11 +59,14 @@
             msg: "{{ data_snapshot_result }}"
         - name: Save os resluts in aap state
           ansible.builtin.set_stats:
-            key: snapshot_base_name
-            value: "{{ snapshot_base_name }}"
-
+            data:
+              snapshot_base_name: "{{ snapshot_base_name }}"
+            per_host: false        # Make it a global statistic
+            aggregate: true
         - name: Save os resluts in aap state
           ansible.builtin.set_stats:
-            key: disk_data
-            value: "{{ os_snapshot_result }}"
+            data:
+              disk_data: "{{ os_snapshot_result }}"
+            per_host: false        # Make it a global statistic
+            aggregate: true
       delegate_to: localhost

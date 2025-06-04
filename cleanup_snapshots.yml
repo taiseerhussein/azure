@@ -13,11 +13,11 @@
 
         - name: Extract snapshot_base_name
           ansible.builtin.set_fact:
-            snapshot_base_name: "{{ snapshot_base_name['snapshot_base_name'] }}"
+            snapshot_base_name: "{{ workflow_job_template_extra_vars.snapshot_base_name }}"
 
         - name: Extract snapshot disk results
           ansible.builtin.set_fact:
-            disk_data: "{{ disk_data['os_snapshot_result'] }}"
+            disk_data: "{{ workflow_job_template_extra_vars.os_snapshot_result }}"
 
         - name: Cleanup snapshot of OS disk
           azure.azcollection.azure_rm_snapshot:
