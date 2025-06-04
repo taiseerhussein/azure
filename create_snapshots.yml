@@ -66,7 +66,7 @@
         - name: Save os resluts in aap state
           ansible.builtin.set_stats:
             data:
-              disk_data: "{{ os_snapshot_result }}"
+              disk_data: "{{ data_snapshot_result }}"
             per_host: false        # Make it a global statistic
             aggregate: true
       delegate_to: localhost
