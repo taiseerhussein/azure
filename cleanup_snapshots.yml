@@ -11,29 +11,27 @@
   tasks:
     - block:
 
-        # - name: Extract snapshot_base_name
-        #   ansible.builtin.set_fact:
-        #     snapshot_base_name: "{{ lookup('set_stats_facts') }}" # "{{ workflow_job_template_extra_vars.snapshot_base_name }}"
-        - name: Display os snapshot result
-          ansible.builtin.debug:
-            msg: "got : {{ disk_data }}"
-        # - name: Extract snapshot disk results
-        #   ansible.builtin.set_fact:
-        #     disk_data: "{{ workflow_job_template_extra_vars.os_snapshot_result }}"
+        - name: Extract snapshot_base_name
+          ansible.builtin.set_fact:
+            snapshot_base_name: "{{ snapshot_base_name }}"
+       
+        - name: Extract snapshot disk results
+          ansible.builtin.set_fact:
+            disk_data: "{{ os_snapshot_result }}"
 
-        # - name: Cleanup snapshot of OS disk
-        #   azure.azcollection.azure_rm_snapshot:
-        #     <<: *snapshot_auth
-        #     name: "{{ snapshot_base_name }}_OS"
-        #     state: absent
-        #   when: os_snapshot_result is defined
+        - name: Cleanup snapshot of OS disk
+          azure.azcollection.azure_rm_snapshot:
+            <<: *snapshot_auth
+            name: "{{ snapshot_base_name }}_OS"
+            state: absent
+          when: os_snapshot_result is defined
 
-        # - name: Cleanup snapshot of data disks
-        #   azure.azcollection.azure_rm_snapshot:
-        #     <<: *snapshot_auth
-        #     name: "{{ item.invocation.module_args.name }}"
-        #     state: absent
-        #   loop: "{{ disk_data.results }}"
-        #   when: data_snapshot_result is defined
+        - name: Cleanup snapshot of data disks
+          azure.azcollection.azure_rm_snapshot:
+            <<: *snapshot_auth
+            name: "{{ item.invocation.module_args.name }}"
+            state: absent
+          loop: "{{ disk_data.results }}"
+          when: data_snapshot_result is defined
 
       delegate_to: localhost
