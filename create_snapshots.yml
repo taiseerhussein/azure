@@ -54,7 +54,16 @@
           ansible.builtin.debug:
             msg: "{{ os_snapshot_result }}"
 
-        - name: Display os snapshot result
+        - name: Display disks snapshot result
           ansible.builtin.debug:
             msg: "{{ data_snapshot_result }}"
+        - name: Save os resluts in aap state
+          ansible.builtin.set_stats:
+            key: snapshot_base_name
+            value: "{{ snapshot_base_name }}"
+
+        - name: Save os resluts in aap state
+          ansible.builtin.set_stats:
+            key: disk_data
+            value: "{{ os_snapshot_result }}"
       delegate_to: localhost

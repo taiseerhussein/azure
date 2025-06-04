@@ -11,9 +11,13 @@
   tasks:
     - block:
 
-        - name: Display os snapshot result
-          ansible.builtin.debug:
-            msg: "{{ snapshot_base_name }}_OS"
+        - name: Extract snapshot_base_name
+          ansible.builtin.set_fact:
+            snapshot_base_name: "{{ snapshot_base_name['snapshot_base_name'] }}"
+
+        - name: Extract snapshot disk results
+          ansible.builtin.set_fact:
+            disk_data: "{{ disk_data['os_snapshot_result'] }}"
 
         - name: Cleanup snapshot of OS disk
           azure.azcollection.azure_rm_snapshot:
@@ -27,7 +31,7 @@
             <<: *snapshot_auth
             name: "{{ item.invocation.module_args.name }}"
             state: absent
-          loop: "{{ data_snapshot_result.results }}"
+          loop: "{{ disk_data.results }}"
           when: data_snapshot_result is defined
 
       delegate_to: localhost
