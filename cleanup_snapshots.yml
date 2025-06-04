@@ -17,7 +17,7 @@
        
         - name: Extract snapshot disk results
           ansible.builtin.set_fact:
-            disk_data: "{{ os_snapshot_result }}"
+            disk_data: "{{ disk_data }}"
 
         - name: Cleanup snapshot of OS disk
           azure.azcollection.azure_rm_snapshot:
