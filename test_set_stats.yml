@@ -1,0 +1,22 @@
+---
+- name: Create snapshots
+  hosts: windows # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
+  # gather_facts: false
+  vars:
+    snapshot_auth: &snapshot_auth
+      subscription_id: "{{ lookup('env', 'AZURE_SUBSCRIPTION_ID') }}"
+      client_id: "{{ lookup('ansible.builtin.env', 'AZURE_CLIENT_ID') }}"
+      secret: "{{ lookup('ansible.builtin.env', 'AZURE_SECRET') }}"
+      tenant: "{{ lookup('ansible.builtin.env', 'AZURE_TENANT') }}"
+      resource_group: "{{ hostvars[inventory_hostname].resource_group }}"
+  tasks:
+
+    - block:
+       
+        - name: Save os resluts in aap state
+          ansible.builtin.set_stats:
+            data:
+              disk_data: "my test data"
+            per_host: false        # Make it a global statistic
+            aggregate: true
+      delegate_to: localhost
