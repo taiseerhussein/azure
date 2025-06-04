@@ -10,6 +10,11 @@
       resource_group: "{{ hostvars[inventory_hostname].resource_group }}"
   tasks:
     - block:
+
+        - name: Display os snapshot result
+          ansible.builtin.debug:
+            msg: "{{ snapshot_base_name }}_OS"
+
         - name: Cleanup snapshot of OS disk
           azure.azcollection.azure_rm_snapshot:
             <<: *snapshot_auth
