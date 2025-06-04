@@ -24,7 +24,7 @@
             <<: *snapshot_auth
             name: "{{ snapshot_base_name }}_OS"
             state: absent
-          when: os_snapshot_result is defined
+          when: snapshot_base_name is defined
 
         - name: Cleanup snapshot of data disks
           azure.azcollection.azure_rm_snapshot:
@@ -32,6 +32,6 @@
             name: "{{ item.invocation.module_args.name }}"
             state: absent
           loop: "{{ disk_data.results }}"
-          when: data_snapshot_result is defined
+          when: disk_data is defined
 
       delegate_to: localhost
