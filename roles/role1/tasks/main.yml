@@ -1,4 +1,4 @@
 ---
-- name: Set a fact in the first role
+- name: We are in ROLE1. Use set fact in role1 to be used in rol2
   ansible.builtin.set_fact:
-    data_to_pass: "This is my data"
+    var_name_to_pass_data: "Hello. my name is Role 1"

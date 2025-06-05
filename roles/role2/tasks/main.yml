@@ -1,4 +1,3 @@
-- name: Use the data in the second role
+- name: We are in ROLE2. Yes I can access data that has been set in role1
   ansible.builtin.debug:
-    msg: "Received data: {{ data_to_pass }}"
-    
+    msg: "Received data: {{ var_name_to_pass_data }}"
