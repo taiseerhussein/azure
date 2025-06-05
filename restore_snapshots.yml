@@ -1,0 +1,110 @@
+---
+- name: Check that snapshot exists
+  block:
+    - name: Fail if no snapshot exists
+      ansible.builtin.fail:
+        msg: "System snapshot was unavailable, cannot restore."
+      when: (not os_snapshot_result) or (not data_snapshot_result.results)
+
+- name: Restore snapshots
+  vars:
+    snapshot_auth: &snapshot_auth
+      subscription_id: "{{ hostvars[inventory_hostname].id.split('/')[2] }}"
+      client_id: "{{ lookup('ansible.builtin.env', 'AZURE_CLIENT_ID') }}"
+      secret: "{{ lookup('ansible.builtin.env', 'AZURE_SECRET') }}"
+      tenant: "{{ lookup('ansible.builtin.env', 'AZURE_TENANT') }}"
+      resource_group: "{{ hostvars[inventory_hostname].resource_group }}"
+    az_snapshot:
+      vm_name: "{{ hostvars[inventory_hostname].name }}"
+      os_type: "{{ hostvars[inventory_hostname].os_profile.system }}"
+      location: "{{ hostvars[inventory_hostname].location }}"
+
+  block:
+    - name: Create a new os managed disk from the snapshot
+      azure.azcollection.azure_rm_manageddisk:
+        <<: *snapshot_auth
+        name: "{{ snapshot_base_name }}_OS"
+        location: "{{ az_snapshot.location }}"
+        creation_data:
+          create_option: Copy
+          source_resource_id: "{{ os_snapshot_result.id }}"
+        os_type: "{{ az_snapshot.os_type }}"
+      register: az_snapshot_new_os_disk_info
+
+    - name: Deallocate (power off) the virtual machine
+      azure.azcollection.azure_rm_virtualmachine:
+        <<: *snapshot_auth
+        name: "{{ hostvars[inventory_hostname].name }}"
+        allocated: false
+        state: present
+
+    - name: Data disk management
+      block:
+        - name: Create new data managed disks from the snapshots
+          azure.azcollection.azure_rm_manageddisk:
+            <<: *snapshot_auth
+            name: "{{ snapshot_base_name }}_LUN{{ loop_i }}"
+            location: "{{ az_snapshot.location }}"
+            creation_data:
+              create_option: Copy
+              source_resource_id: "{{ item.id }}"  # Copy from snapshot
+            os_type: "{{ az_snapshot.os_type }}"
+          register: new_data_disk_info
+          loop: data_snapshot_result.results
+          loop_control:
+            index_var: loop_i
+
+        - name: Detach disks from machine
+          azure.azcollection.azure_rm_virtualmachine:
+            <<: *snapshot_auth
+            name: "{{ hostvars[inventory_hostname].name }}"
+            data_disks: []
+
+        - name: Set data disks attachment info
+          ansible.bulitin.set_fact:
+            managed_data_disks: "{{
+                (data_disks|default([])) + \
+                  [{'lun': idx, 'managed_disk_id': item.state.id}]
+                }}"
+          loop: new_data_disk_info.results
+          loop_control:
+            index_var: loop_i
+
+        - name: Swap the OS disk of the Virtual Machine and add data disks
+          azure.azcollection.azure_rm_virtualmachine:
+            <<: *snapshot_auth
+            name: "{{ az_snapshot.vm_name }}"
+            os_disk:
+              managed_disk:
+                id: "{{ az_snapshot_new_os_disk_info.state.id }}"
+            state: present
+            data_disks: "{{ managed_data_disks }}"
+          register: az_snapshot_swap_result
+
+      when: not no_data_disks  # Only run when there are data disks present
+
+    - name: Swap the OS disk of the Virtual Machine
+      azure.azcollection.azure_rm_virtualmachine:
+        <<: *snapshot_auth
+        name: "{{ az_snapshot.vm_name }}"
+        os_disk:
+          managed_disk:
+            id: "{{ az_snapshot_new_os_disk_info.state.id }}"
+        state: present
+      when: no_data_disks
+      register: az_snapshot_swap_result
+
+    - name: Power the virtual machine back on
+      azure.azcollection.azure_rm_virtualmachine:
+        <<: *snapshot_auth
+        name: "{{ hostvars[inventory_hostname].name }}"
+        allocated: false
+        state: present
+
+  rescue:
+    name: Set no_cleanup_snapshots on error
+    ansible.builtin.set_fact:
+      no_cleanup_snapshots: true
+    changed_when: true  # Force the notification handler to run.
+    notify:
+      - Send email notification

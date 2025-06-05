@@ -1,0 +1,4 @@
+- name: Use the data in the second role
+  ansible.builtin.debug:
+    msg: "Received data: {{ data_to_pass }}"
+    

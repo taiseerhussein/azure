@@ -1,0 +1,4 @@
+---
+- name: Set a fact in the first role
+  ansible.builtin.set_fact:
+    data_to_pass: "This is my data"

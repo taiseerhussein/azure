@@ -1,0 +1,4 @@
+---
+tf_build: "ansible01"
+terraform_working_dir: /tmp/srv/
+terraform_state: present
