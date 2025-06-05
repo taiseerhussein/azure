@@ -1,3 +1,12 @@
 - name: We are in ROLE2. Yes I can access data that has been set in role1
   ansible.builtin.debug:
     msg: "Received data: {{ var_name_to_pass_data }}"
+
+- name: Include shared variables
+  ansible.builtin.include_vars:
+    file: "/tmp/shared_data.yml"
+    name: loaded_data # Optional: loads into a specific hash
+
+- name: Use the loaded data
+  ansible.builtin.debug:
+    msg: "Loaded key: {{ loaded_data.key if loaded_data is defined else shared_info.key }}"

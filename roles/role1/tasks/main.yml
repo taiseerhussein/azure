@@ -2,3 +2,14 @@
 - name: We are in ROLE1. Use set fact in role1 to be used in rol2
   ansible.builtin.set_fact:
     var_name_to_pass_data: "Hello. my name is Role 1"
+
+- name: Prepare data
+  ansible.builtin.set_fact:
+    shared_info:
+      key: value
+      another_key: another_value
+
+- name: Write data to a shared file
+  ansible.builtin.copy:
+    content: "{{ shared_info | to_nice_yaml }}"
+    dest: "/tmp/shared_data.yml"
