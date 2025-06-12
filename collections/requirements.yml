@@ -3,3 +3,4 @@ collections:
     version: ">=1.10.0"
   - name: community.general
   - name: ansible.windows
+  - name: ansible.controller
