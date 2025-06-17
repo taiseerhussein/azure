@@ -1,0 +1,33 @@
+---
+- name: VMware VM Snapshot Playbook for AAP
+  hosts: windows2019srv_64Guest
+  connection: local
+  gather_facts: no
+  vars:
+    vcenter_hostname: "{{ vcenter_hostname | default('vcsrs00-vc.infra.demo.redhat.com') }}"
+    vm_name: "{{ hostvars[inventory_hostname].name }}"
+    snapshot_description: "Pre-maintenance snapshot taken with Ansible"
+
+  tasks:
+    - name: "Create a snapshot for the VM: {{ vm_name }}"
+      # This module manages VMware guest snapshots.
+      community.vmware.vmware_guest_snapshot:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_user }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: false
+
+        name: "{{ vm_name }}"
+        state: present
+
+        # Snapshot Specifics
+        snapshot_name: "ansible-snapshot-{{ ansible_date_time.iso8601 }}" # Creates a unique name with a timestamp
+        description: "{{ snapshot_description }}"
+        quiesce: true
+        memory_snapshot: true
+      register: snapshot_result
+      no_log: true
+
+    - name: "Display snapshot creation result"
+      ansible.builtin.debug:
+        msg: "Snapshot task completed for {{ vm_name }}. Result: {{ snapshot_result.msg }}"
