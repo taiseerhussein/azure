@@ -3,8 +3,10 @@
   hosts: windows2019srv_64Guest
   connection: local
   gather_facts: no
+  vars_files:
+    - vmware-cred.yml
   vars:
-    vcenter_hostname: "{{ vcenter_hostname | default('vcsrs00-vc.infra.demo.redhat.com') }}"
+    vcenter_hostname: "{{ m-vmware-host }}"
     vm_name: "{{ hostvars[inventory_hostname].name }}"
     snapshot_description: "Pre-maintenance snapshot taken with Ansible"
 
@@ -19,8 +21,8 @@
       # This module manages VMware guest snapshots.
       community.vmware.vmware_guest_snapshot:
         hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_user }}"
-        password: "{{ vcenter_password }}"
+        username: "{{ m-vmware-uname }}"
+        password: "{{ m-vmware-pass }}"
         validate_certs: false
 
         name: "{{ vm_name }}"
