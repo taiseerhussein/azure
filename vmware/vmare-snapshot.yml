@@ -29,7 +29,7 @@
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "ansible-snapshot-{{ ansible_date_time.iso8601 }}" # Creates a unique name with a timestamp
+        snapshot_name: "ansible-snapshot-{{ '%Y-%m-%d %H:%M:%S' | strftime(now()) }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         memory_snapshot: true
