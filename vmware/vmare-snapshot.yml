@@ -15,9 +15,9 @@
       ansible.builtin.debug:
         msg: "vcenter_hostname is: {{ vcenter_hostname }} and its type is: {{ vcenter_hostname | type_debug }}"
       ignore_errors: true # Use this in case printing the variable itself is the source of the error
-    - name: debug 2
-      ansible.builtin.debug:
-        msg: "ansible-snapshot-{{ now() | strftime('%Y-%m-%d %H:%M:%S') }}"
+    # - name: debug 2
+    #   ansible.builtin.debug:
+    #     msg: "ansible-snapshot-{{ now() | strftime('%Y-%m-%d %H:%M:%S') }}"
 
 # Your original failing task would be here...
     - name: "Create a snapshot for the VM: {{ vm_name }}"
@@ -32,7 +32,7 @@
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "ansible-snapshot-{{ now() | strftime('%Y-%m-%d %H:%M:%S') }}" # Creates a unique name with a timestamp
+        snapshot_name: "ansible-snapshot-{{ vm_name }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         memory_snapshot: true
