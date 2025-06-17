@@ -37,7 +37,7 @@
         snapshot_name: "ansible-snapshot-{{ vm_name }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
-        memory_snapshot: true
+        # memory_snapshot: true
       register: snapshot_result
       no_log: false
 
