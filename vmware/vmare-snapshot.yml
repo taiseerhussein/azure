@@ -20,7 +20,7 @@
     - name: "Create a snapshot for the VM: {{ vm_name }}"
       # This module manages VMware guest snapshots.
       community.vmware.vmware_guest_snapshot:
-        hostname: "{{ vcenter_hostname }}"
+        hostname: "{{ m-vmware-host }}"
         username: "{{ m-vmware-uname }}"
         password: "{{ m-vmware-pass }}"
         validate_certs: false
