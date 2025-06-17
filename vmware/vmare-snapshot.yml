@@ -6,7 +6,7 @@
   vars_files:
     - vmware-cred.yml
   vars:
-    vcenter_hostname: "{{ m-vmware-host }}"
+    vcenter_hostname: "{{ m_vmware_host }}"
     vm_name: "{{ hostvars[inventory_hostname].name }}"
     snapshot_description: "Pre-maintenance snapshot taken with Ansible"
 
