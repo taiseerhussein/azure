@@ -9,6 +9,12 @@
     snapshot_description: "Pre-maintenance snapshot taken with Ansible"
 
   tasks:
+    - name: Debug the vcenter_hostname variable
+      ansible.builtin.debug:
+        msg: "vcenter_hostname is: {{ vcenter_hostname }} and its type is: {{ vcenter_hostname | type_debug }}"
+      ignore_errors: true # Use this in case printing the variable itself is the source of the error
+
+# Your original failing task would be here...
     - name: "Create a snapshot for the VM: {{ vm_name }}"
       # This module manages VMware guest snapshots.
       community.vmware.vmware_guest_snapshot:
