@@ -22,7 +22,7 @@
       community.vmware.vmware_guest_snapshot:
         hostname: "{{ m_vmware_host }}"
         username: "{{ m_vmware_uname }}"
-        password: "{{ m_mware_pass }}"
+        password: "{{ m_vmware_pass }}"
         validate_certs: false
 
         name: "{{ vm_name }}"
