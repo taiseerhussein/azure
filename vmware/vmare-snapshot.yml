@@ -26,7 +26,7 @@
         quiesce: true
         memory_snapshot: true
       register: snapshot_result
-      no_log: true
+      no_log: false
 
     - name: "Display snapshot creation result"
       ansible.builtin.debug:
