@@ -30,14 +30,15 @@
         folder: "/{{ m_datacenter_name }}/vm/"
         validate_certs: false
 
-        name: "{{ vm_name }}"
+        name: winweb01-j57t9
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "ansible-snapshot-{{ vm_name }}" # Creates a unique name with a timestamp
+        snapshot_name: ansible-snapshot-winweb01-j57t9 # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         # memory_snapshot: true
+      delegate_to: localhost
       register: snapshot_result
       no_log: false
 
