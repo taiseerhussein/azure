@@ -34,7 +34,7 @@
         state: present
 
         # Snapshot Specifics
-        snapshot_name: ansible-snapshot-winweb01-j57t9 # Creates a unique name with a timestamp
+        snapshot_name: "ansible-snapshot-winweb01-j57t9 {{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         # memory_snapshot: true
@@ -44,4 +44,4 @@
 
     - name: "Display snapshot creation result"
       ansible.builtin.debug:
-        msg: "Snapshot task completed for {{ vm_name }}. Result: {{ snapshot_result.msg }}"
+        msg: "Snapshot task completed for {{ vm_name }}. Result: {{ snapshot_result}}"
