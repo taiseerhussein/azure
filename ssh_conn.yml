@@ -1,6 +1,6 @@
 ---
 - name: Create snapshots
-  hosts: 192.168.63.1 # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
+  hosts: ssh-test # <<< IMPORTANT: Replace 'your_windows_group' with your actual inventory group name (e.g., 'windows_servers')
   # gather_facts: false
  
   tasks:
