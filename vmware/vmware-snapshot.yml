@@ -44,6 +44,6 @@
     - name: Save snapshot name  in aap state
       ansible.builtin.set_stats:
         data:
-          snapshot_name: "{{ snapshot_result.ansible_stats.data.snapshot_name }}"
+          snapshot_name: "{{ snapshot_result.snapshot.name }}"
         per_host: false        # Make it a global statistic
         aggregate: true
