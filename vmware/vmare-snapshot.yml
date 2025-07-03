@@ -34,7 +34,7 @@
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "{{ hostvars[inventory_hostname]['config.guestId'] }} _ {{ date_time }}" # Creates a unique name with a timestamp
+        snapshot_name: "{{ hostvars[inventory_hostname]['config.guestId'] }}_{{ date_time }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         # memory_snapshot: true
