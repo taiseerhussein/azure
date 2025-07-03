@@ -22,19 +22,19 @@
 # Your original failing task would be here...
     - name: "Create a snapshot for the VM: {{ vm_name }}"
       # This module manages VMware guest snapshots.
-      community.vmware.vmware_guest_snapshot:
+      vmware.vmware.vm_snapshot:
         hostname: "{{ m_vmware_host }}"
         username: "{{ m_vmware_uname }}"
         password: "{{ m_vmware_pass }}"
         datacenter: "{{ m_datacenter_name }}"
-        # folder: "/{{ m_datacenter_name }}/vm/"
+        folder: "/{{ m_datacenter_name }}/vm/"
         validate_certs: false
 
-        uuid: "{{ hostvars[inventory_hostname]['config.instanceUuid'] }}"
+        name: "{{ hostvars[inventory_hostname]['config.name'] }}"
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "{{ hostvars[inventory_hostname]['config.guestId'] }}_{{ date_time }}" # Creates a unique name with a timestamp
+        snapshot_name: "{{ hostvars[inventory_hostname]['config.name'] }}_{{ date_time }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         # memory_snapshot: true
