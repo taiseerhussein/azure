@@ -19,7 +19,7 @@
 
 
 # Your original failing task would be here...
-    - name: "deleting  {{ snapshot_name }} snapshot for the VM: {{ vm_name }}"
+    - name: "deleting: {{ snapshot_name }} snapshot for the VM: {{ vm_name }}"
       # This module manages VMware guest snapshots.
       vmware.vmware.vm_snapshot:
         hostname: "{{ m_vmware_host }}"
