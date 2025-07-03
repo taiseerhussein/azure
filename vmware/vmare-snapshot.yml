@@ -27,7 +27,7 @@
         username: "{{ m_vmware_uname }}"
         password: "{{ m_vmware_pass }}"
         datacenter: "{{ m_datacenter_name }}"
-        folder: "/{{ m_datacenter_name }}/vm/"
+        # folder: "/{{ m_datacenter_name }}/vm/"
         validate_certs: false
 
         uuid: "{{ hostvars[inventory_hostname]['config.instanceUuid'] }}"
