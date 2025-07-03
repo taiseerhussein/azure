@@ -9,6 +9,7 @@
     vcenter_hostname: "{{ m_vmware_host }}"
     vm_name: "{{ hostvars[inventory_hostname].name }}"
     snapshot_description: "Pre-maintenance snapshot taken with Ansible"
+    date_time: "{{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}"
 
   tasks:
     - name: Debug the vcenter_hostname variable
@@ -30,11 +31,11 @@
         folder: "/{{ m_datacenter_name }}/vm/"
         validate_certs: false
 
-        name: winweb01-j57t9
+        uuid: "{{ hostvars[inventory_hostname].config.uuid }}"
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "ansible-snapshot-winweb01-j57t9 {{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}" # Creates a unique name with a timestamp
+        snapshot_name: "{{ hostvars[inventory_hostname].config.guestId }} _ {{ date_time }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         # memory_snapshot: true
