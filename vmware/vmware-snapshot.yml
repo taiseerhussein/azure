@@ -39,7 +39,7 @@
 
     - name: "Display snapshot creation result"
       ansible.builtin.debug:
-        msg: "Snapshot task completed for {{ vm_name }}. Result: {{ snapshot_result.ansible_stats.data.snapshot_name }}"
+        var: snapshot_result
 
     - name: Save snapshot name  in aap state
       ansible.builtin.set_stats:
