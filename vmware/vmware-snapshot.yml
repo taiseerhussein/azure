@@ -9,8 +9,8 @@
     vcenter_hostname: "{{ m_vmware_host }}"
     vm_name: "{{ hostvars[inventory_hostname]['config.name'] }}"
     snapshot_description: "Pre-maintenance snapshot taken with Ansible"
-    date_time: "{{ ansible_facts.date_time.iso8601_basic_short }}" 
-
+    date_time: "{{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}" 
+    snapshot_name: "{{ vm_name }}_{{ date_time }}"
   tasks:
    
 
@@ -29,7 +29,7 @@
         state: present
 
         # Snapshot Specifics
-        snapshot_name: "{{ vm_name }}_{{ date_time }}" # Creates a unique name with a timestamp
+        snapshot_name: "{{ snapshot_name }}" # Creates a unique name with a timestamp
         description: "{{ snapshot_description }}"
         quiesce: true
         # memory_snapshot: true
@@ -39,11 +39,11 @@
 
     - name: "Display snapshot creation result"
       ansible.builtin.debug:
-        msg: "Snapshot task completed for {{ vm_name }}. Result: {{ snapshot_result}}"
+        msg: "Snapshot task completed for {{ vm_name }}. Result: {{ snapshot_result.ansible_stats.data.snapshot_name }}"
 
     - name: Save snapshot name  in aap state
       ansible.builtin.set_stats:
         data:
-          snapshot_name: "{{ vm_name }}_{{ date_time }}"
+          snapshot_name: "{{ snapshot_result.ansible_stats.data.snapshot_name }}"
         per_host: false        # Make it a global statistic
         aggregate: true
