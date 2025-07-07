@@ -21,7 +21,7 @@
 # Your original failing task would be here...
     - name: "deleting: {{ snapshot_name }} snapshot for the VM: {{ vm_name }}"
       # This module manages VMware guest snapshots.
-      vmware.vmware.vm_snapshot:
+      community.vmware.vmware_guest_snapshot:
         hostname: "{{ m_vmware_host }}"
         username: "{{ m_vmware_uname }}"
         password: "{{ m_vmware_pass }}"
@@ -29,7 +29,7 @@
         folder: "/{{ m_datacenter_name }}/vm/"
         validate_certs: false
 
-        name: "test"
+        name: "{{ vm_name }}"
         state: revert
         remove_children: true
         # Snapshot Specifics
