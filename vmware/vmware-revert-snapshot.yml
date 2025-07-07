@@ -1,0 +1,40 @@
+---
+- name: VMware VM Snapshot Playbook for AAP
+  hosts: windows2019srv_64Guest
+  connection: local
+  gather_facts: no
+  vars_files:
+    - vmware-cred.yml
+  vars:
+    vcenter_hostname: "{{ m_vmware_host }}"
+    vm_name: "{{ hostvars[inventory_hostname]['config.name'] }}"
+    snapshot_description: "Pre-maintenance snapshot taken with Ansible"
+    date_time: "{{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}"
+
+  tasks:
+    - name: Extract snapshot_base_name
+      ansible.builtin.set_fact:
+        snapshot_name: "{{ snapshot_name }}"
+    
+
+
+# Your original failing task would be here...
+    - name: "deleting: {{ snapshot_name }} snapshot for the VM: {{ vm_name }}"
+      # This module manages VMware guest snapshots.
+      vmware.vmware.vm_snapshot:
+        hostname: "{{ m_vmware_host }}"
+        username: "{{ m_vmware_uname }}"
+        password: "{{ m_vmware_pass }}"
+        datacenter: "{{ m_datacenter_name }}"
+        folder: "/{{ m_datacenter_name }}/vm/"
+        validate_certs: false
+
+        name: "test"
+        state: revert
+        remove_children: true
+        # Snapshot Specifics
+        snapshot_name: "{{ snapshot_name }}" 
+      delegate_to: localhost
+      register: snapshot_result
+      no_log: false
+
