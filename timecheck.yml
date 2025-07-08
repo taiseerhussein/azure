@@ -1,7 +1,7 @@
 ---
 - name: "Definitive Timezone Diagnostic Playbook"
   hosts: localhost
-  gather_facts: false
+  gather_facts: true
   connection: local
 
   tasks:
