@@ -21,6 +21,8 @@
       ansible.builtin.debug:
         msg: "epicrpt-{{ lookup('pipe', 'TZ=US/Eastern date +%Y%m%dT%H%M%S') }}-val"
         # US/Eastern
-    - name: Using Epoch
+    
+    - name: Eastern time zone (1 - 12)
       ansible.builtin.debug:
-        msg: "{{ '%Y%m%dT%H%M%S' | strftime(ansible_date_time.epoch | int) }}"
+        msg: "epicrpt-{{ lookup('pipe', 'TZ=US/Eastern date +%Y%m%dT%I%M%S%p') }}-val"
+        # US/Eastern
