@@ -8,3 +8,20 @@
     - name: "Time date"
       debug:
         msg: "Current time: {{ ansible_date_time.iso8601_basic_short }}"
+
+    - name: Display original UTC time from Ansible facts
+      ansible.builtin.debug:
+        msg: "Current UTC time (from facts): {{ ansible_date_time.iso8601 }}"
+
+    - name: Convert a UTC string to a local timezone (US/Central)
+      ansible.builtin.debug:
+        msg: >-
+          The event at {{ utc_timestamp_string }} UTC occurred at
+          {{ utc_timestamp_string | to_datetime('%Y-%m-%dT%H:%M:%SZ') | strftime('%Y-%m-%d %I:%M:%S %p %Z', 'US/Central') }}
+          in Central Time.
+
+    - name: Convert current UTC time to another timezone (US/Pacific)
+      ansible.builtin.debug:
+        msg: >-
+          The current time in Pacific Time is
+          {{ ansible_date_time.iso8601 | to_datetime | strftime('%I:%M %p %Z', 'US/Pacific') }}.
