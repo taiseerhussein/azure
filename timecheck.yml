@@ -15,10 +15,4 @@
 
     - name: ISO 8601 datetime in local timezone
       ansible.builtin.debug:
-        msg: "epicrpt-{{ lookup('pipe', 'TZ=America/Chicago date +%Y%m%dT%H%M%S') }}-val"
-
-    - name: Convert current UTC time to another timezone (US/Pacific)
-      ansible.builtin.debug:
-        msg: >-
-          The current time in Pacific Time is
-          {{ ansible_date_time.iso8601 | to_datetime | strftime('%I:%M %p %Z', 'US/Central') }}.
+        msg: "epicrpt-{{ lookup('pipe', 'TZ=US/Central date +%Y%m%dT%H%M%S') }}-val"
