@@ -30,3 +30,7 @@
     - name: Format now() to ISO 8601 basic
       debug:
         msg: "{{ now().strftime('%Y%m%dT%H%M%S') }}"
+
+    - name: Format now() to ISO 8601 basic
+      debug:
+        msg: "{{ now(tz='America/Chicago').strftime('%Y%m%dT%H%M%S') }}"
