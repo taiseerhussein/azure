@@ -1,0 +1,22 @@
+---
+- name: "Definitive Timezone Diagnostic Playbook"
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: "1. Default now() - Should be UTC"
+      debug:
+        msg: "Default now() result: {{ now(fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "2. now(utc=False) - The EE's system time (likely UTC)"
+      debug:
+        msg: "now(utc=False) result: {{ now(utc=False, fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "3. now(tz='America/Chicago') - Should be your local time (CDT)"
+      debug:
+        msg: "Time in Chicago (CDT): {{ now(tz='America/Chicago', fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "4. now(tz='Asia/Kolkata') - Should be India Standard Time (IST)"
+      debug:
+        msg: "Time in Kolkata (IST): {{ now(tz='Asia/Kolkata', fmt='%Y-%m-%d %H:%M:%S %Z') }}"
