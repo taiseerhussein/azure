@@ -6,6 +6,11 @@
 
   tasks:
     
+    - name: Set timezone to America/Chicago
+      become: true
+      community.general.timezone:
+        name: America/Chicago
+
     - name: "Step 1: Report the Ansible version being used"
       debug:
         msg: "The version for this job run is: {{ ansible_version.full }}"
