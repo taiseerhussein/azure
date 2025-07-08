@@ -10,9 +10,7 @@
       debug:
         msg: "The version for this job run is: {{ ansible_version.full }}"
 
-    - name: "Step 2: Attempt the timezone conversion"
-      debug:
-        msg: "Time in Chicago: {{ now(tz='America/Chicago', fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+    
 
     - name: "1. Default now() - Should be UTC"
       debug:
