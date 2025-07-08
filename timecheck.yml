@@ -1,10 +1,31 @@
 ---
-- name: "Final Confirmation Playbook"
+- name: "Definitive Timezone Diagnostic Playbook"
   hosts: localhost
   gather_facts: false
   connection: local
 
   tasks:
-    - name: "Run the now() function with a timezone"
+    
+    - name: "Step 1: Report the Ansible version being used"
       debug:
-        msg: "SUCCESS: The time in Chicago is {{ now(tz='America/Chicago', fmt='%Y-%m-%d %H:%M:%S') }}"
+        msg: "The version for this job run is: {{ ansible_version.full }}"
+
+    - name: "Step 2: Attempt the timezone conversion"
+      debug:
+        msg: "Time in Chicago: {{ now(tz='America/Chicago', fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "1. Default now() - Should be UTC"
+      debug:
+        msg: "Default now() result: {{ now(fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "2. now(utc=False) - The EE's system time (likely UTC)"
+      debug:
+        msg: "now(utc=False) result: {{ now(utc=False, fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "3. now(tz='America/Chicago') - Should be your local time (CDT)"
+      debug:
+        msg: "Time in Chicago (CDT): {{ now(tz='America/Chicago', fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+
+    - name: "4. now(tz='Asia/Kolkata') - Should be India Standard Time (IST)"
+      debug:
+        msg: "Time in Kolkata (IST): {{ now(tz='Asia/Kolkata', fmt='%Y-%m-%d %H:%M:%S %Z') }}"
