@@ -16,3 +16,7 @@
     - name: ISO 8601 datetime in local timezone
       ansible.builtin.debug:
         msg: "epicrpt-{{ lookup('pipe', 'TZ=US/Central date +%Y%m%dT%H%M%S') }}-val"
+  
+    - name: Using Epoch
+      ansible.builtin.debug:
+        ansible.builtinmsg: "{{ '%Y%m%dT%H%M%S' | strftime(ansible_date_time.epoch | int) }}"
