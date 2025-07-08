@@ -26,3 +26,7 @@
       ansible.builtin.debug:
         msg: "epicrpt-{{ lookup('pipe', 'TZ=US/Eastern date +%Y%m%dT%I%M%S%p') }}-val"
         # US/Eastern
+    
+    - name: Format now() to ISO 8601 basic
+      debug:
+        msg: "{{ now().strftime('%Y%m%dT%H%M%S') }}"
