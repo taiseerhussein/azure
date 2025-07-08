@@ -9,7 +9,7 @@
     vcenter_hostname: "{{ m_vmware_host }}"
     vm_name: "{{ hostvars[inventory_hostname]['config.name'] }}"
     snapshot_description: "Pre-maintenance snapshot taken with Ansible"
-    date_time: "{{ now(tz='America/Chicago', fmt='%Y-%m-%d@%H:%M:%S') }}" 
+    date_time: "{{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}" 
     snapshot_name: "{{ vm_name }}_{{ date_time }}"
   tasks:
    
