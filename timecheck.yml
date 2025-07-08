@@ -6,24 +6,23 @@
 
   tasks:
     
-    - name: Set timezone to America/Chicago
-      become: true
-      community.general.timezone:
-        name: America/Chicago
 
     - name: "Step 1: Report the Ansible version being used"
       debug:
         msg: "The version for this job run is: {{ ansible_version.full }}"
 
     
-
     - name: "1. Default now() - Should be UTC"
       debug:
         msg: "Default now() result: {{ now(fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+      environment:
+        tz: "America/Chicago"
 
     - name: "2. now(utc=False) - The EE's system time (likely UTC)"
       debug:
         msg: "now(utc=False) result: {{ now(utc=False, fmt='%Y-%m-%d %H:%M:%S %Z') }}"
+      environment:
+        tz: "America/Chicago"
 
     - name: "3. now(tz='America/Chicago') - Should be your local time (CDT)"
       debug:
