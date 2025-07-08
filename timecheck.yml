@@ -13,6 +13,9 @@
       ansible.builtin.debug:
         msg: "Current UTC time (from facts): {{ ansible_date_time.iso8601 }}"
 
+    - name: ISO 8601 datetime in local timezone
+      ansible.builtin.debug:
+        msg: "{{ lookup('pipe', 'TZ=America/Chicago date +%Y%m%dT%H%M%S') }}"
 
     - name: Convert current UTC time to another timezone (US/Pacific)
       ansible.builtin.debug:
