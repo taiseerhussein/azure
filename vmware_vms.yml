@@ -1,3 +1,4 @@
 ---
 plugin: vmware.vmware.vms
 validate_certs: false
+...
