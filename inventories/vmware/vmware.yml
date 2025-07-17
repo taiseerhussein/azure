@@ -1,4 +1,5 @@
----
-plugin: vmware.vmware.vms
-validate_certs: false
-...
+plugin: community.vmware.vmware_vm_inventory
+hostname: "{{ lookup('env', 'VMWARE_HOST') }}"
+username: "{{ lookup('env', 'VMWARE_USER') }}"
+password: "{{ lookup('env', 'VMWARE_PASSWORD') }}"
+validate_certs: False
